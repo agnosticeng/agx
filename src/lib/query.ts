@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/tauri";
 
-export async function exec(query: string) {
+export async function exec(query: string): Promise<CHResponse> {
     try {
         const r: string = await invoke("query", {
             query,
@@ -9,11 +9,11 @@ export async function exec(query: string) {
         return JSON.parse(r);
     } catch (e) {
         console.error(e);
-        return {};
+        return undefined;
     }
 }
 
 export type CHResponse = {
-    meta: [{ name: string; type: string }];
+    meta: Array<{ name: string; type: string }>;
     data: Array<{ [key: string]: any }>;
 } | undefined

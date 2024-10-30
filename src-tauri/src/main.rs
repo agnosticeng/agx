@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 use String;
 
-use agx::arg::Arg;
+use agx::{arg::Arg, format::OutputFormat};
 
 use std::env;
 mod conf;
@@ -15,12 +15,12 @@ async fn query(query: String, udfs: String) -> String {
     let args = if !udfs.is_empty() {
         vec![
             // Arg::Custom("logger.level".into(), Some("debug".into())),
-            Arg::Custom("output-format".into(), Some("JSON".into())),
+            Arg::OutputFormat(OutputFormat::JSON),
             Arg::Custom("path".into(), Some(udfs.into())),
             Arg::ConfigFilePath(Cow::Borrowed(&config_path)),
         ]
     } else {
-        vec![Arg::Custom("output-format".into(), Some("JSON".into()))]
+        vec![Arg::OutputFormat(OutputFormat::JSON)]
     };
 
     let result = agx::execute(&query, Some(&args));

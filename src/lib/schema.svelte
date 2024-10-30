@@ -36,6 +36,7 @@
         width: 225px;
         height: 100vh;
         background: rgba(30, 30, 30, 1);
+        color: #f6f6f6;
         overflow: scroll;
         font-size: 10px;
     }
