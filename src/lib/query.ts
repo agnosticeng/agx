@@ -6,6 +6,7 @@ export async function exec(query: string): Promise<CHResponse> {
             query,
             udfs: "", // @todo: add it to the config
         });
+        if (r.startsWith('Error:')) throw new Error(r)
         return JSON.parse(r);
     } catch (e) {
         console.error(e);
