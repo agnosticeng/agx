@@ -1,0 +1,44 @@
+@import 'normalize.css' layer(normalize);
+
+@layer normalize, base, variables;
+
+
+@layer variables {
+  :root {
+    --side-bar-width: 242px;
+
+    font-size: 0.75rem;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  [data-theme='light'] {
+    color-scheme: light only;
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark only;
+  }
+
+  *,
+  *:after,
+  *:before {
+    box-sizing: border-box;
+  }
+
+
+  body {
+    background: light-dark(white, black);
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
