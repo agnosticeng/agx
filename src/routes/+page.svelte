@@ -3,34 +3,17 @@
 	import Editor from '$lib/editor.svelte';
 	import { exec, type CHResponse } from '$lib/query';
 	import VerticalPanel from '$lib/components/VerticalPanel.svelte';
-	import type { DataSource } from '$lib/types';
-	import { onMount } from 'svelte';
+	import type { DataSource } from '$lib/datasources/types';
 	import { appWindow } from '@tauri-apps/api/window';
 	import { slugify } from '$lib/slugify';
+	import type { PageData } from './$types';
+	import { setDataSources } from '$lib/datasources/store';
 
 	let response: CHResponse = $state.raw(undefined);
 
-	let datasources = $state<DataSource[]>([]);
+	let { data }: { data: PageData } = $props();
 
-	onMount(async () => {
-		if (datasources.find((d) => d.name === 'Agnostic Logs' && d.type === 'Parquet')) return;
-
-		const describe = await exec(
-			`DESCRIBE TABLE s3('https://data.agnostic.dev/ethereum-mainnet-pq/logs/*.parquet', 'Parquet')`
-		);
-
-		if (!describe) return;
-
-		const logs = {
-			name: 'Agnostic Logs',
-			slug: 'agnostic_logs',
-			describe,
-			path: "s3('https://data.agnostic.dev/ethereum-mainnet-pq/logs/*.parquet', 'Parquet')",
-			type: 'Parquet'
-		} satisfies DataSource;
-
-		datasources.push(logs);
-	});
+	let datasources = $state(data.datasources);
 
 	appWindow.onFileDropEvent(async (event) => {
 		if (event.payload.type !== 'drop') return;
@@ -46,10 +29,13 @@
 				slug: slugify(get_filename(path)),
 				describe,
 				path: `file('${path}', ${ext.toUpperCase()})`,
-				type: ext.toUpperCase() as DataSource['type']
+				type: ext.toUpperCase() as DataSource['type'],
+				timestamp: Date.now()
 			} satisfies DataSource;
 
 			datasources.push(logs);
+
+			setDataSources(datasources);
 		}
 	});
 
@@ -60,6 +46,10 @@
 	function get_filename(path: string) {
 		return path.split('/').pop()!.split('/').pop()!.split('.').slice(0, -1).join('');
 	}
+
+	$effect(() => {
+		console.log($state.snapshot(datasources));
+	});
 </script>
 
 <section class="screen">

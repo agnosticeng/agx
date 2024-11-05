@@ -11,6 +11,7 @@ tauri-build = { version = "1", features = [] }
 bindgen = "0.70.1"
 
 [dependencies]
+tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 tauri = { version = "1", features = ["shell-open"] }
 thiserror = "1"
 

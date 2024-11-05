@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SearchBar from '$lib/components/SearchBar.svelte';
-	import type { DataSource } from '$lib/types';
+	import type { DataSource } from '$lib/datasources/types';
 	import { CircleStack, TableCells } from '@agnosticeng/heroicons-svelte/outline';
 
 	type Props = {
@@ -50,7 +50,7 @@
 					</span>
 				</summary>
 				<ul>
-					{#each datasource.describe.data as column}
+					{#each datasource.describe?.data ?? [] as column}
 						<li>
 							<span>{column.name}</span>
 							<span>{remove_nullable(column.type)}</span>
