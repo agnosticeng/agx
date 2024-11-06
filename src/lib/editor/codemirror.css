@@ -1,0 +1,71 @@
+.cm-editor {
+	height: 100%;
+	width: 100%;
+}
+
+.cm-editor.cm-focused {
+	outline: none;
+}
+
+.cm-editor .cm-content {
+	caret-color: hsl(0deg 0% 100%);
+}
+
+.cm-editor .cm-gutters {
+	background-color: hsl(0deg 0% 0%);
+	border: none;
+	user-select: none;
+	color: hsl(0deg 0% 52%);
+}
+
+.cm-editor .cm-scroller {
+	font-family: Menlo, Consolas, monospace;
+	line-height: inherit;
+}
+
+.cm-editor .cm-gutters .cm-gutterElement {
+	width: 35px;
+}
+
+.cm-editor .cm-tooltip {
+	border: none;
+	background-color: hsl(0deg 0% 0%);
+}
+
+.Editor__dark .cm-editor .cm-tooltip {
+	background-color: hsl(236deg 15% 20%);
+}
+
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul {
+	font: 14px/1.5 Menlo, Consolas, monospace;
+	border-radius: 8px;
+	box-shadow: 0 8px 30px hsl(0deg 0% 0% / 0.12);
+	max-height: 264px;
+	padding: 0;
+	min-width: fit-content;
+}
+
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+	border-radius: 4px;
+	grid-column: 1 / 2;
+	margin: 4px;
+	padding: 6px 8px;
+}
+
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete .cm-completionIcon[aria-hidden='true'] {
+	display: none;
+}
+
+.cm-editor .cm-tooltip-autocomplete ul li[aria-selected] {
+	background-color: hsl(211deg 14% 98% / 12%);
+	color: inherit;
+}
+
+.cm-editor .cm-foldPlaceholder {
+	margin: 0 4px;
+	padding: 0 6px;
+	border-radius: 4px;
+	background-color: hsl(236deg 15% 20%);
+	border: none;
+	color: hsl(0deg 0% 52%);
+}
