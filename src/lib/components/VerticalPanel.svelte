@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SearchBar from '$lib/components/SearchBar.svelte';
 	import type { DataSource } from '$lib/datasources/types';
-	import { CircleStack, TableCells } from '@agnosticeng/heroicons-svelte/outline';
+	import { CircleStack, TableCells } from '$lib/icons';
 	import AddDataSourceDialog from './AddDataSourceDialog.svelte';
 
 	type Props = {

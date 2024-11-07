@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SvelteHTMLElements } from 'svelte/elements';
-	import { MagnifyingGlass } from '@agnosticeng/heroicons-svelte/outline';
+	import { MagnifyingGlass } from '$lib/icons';
 
 	type Props = Omit<
 		SvelteHTMLElements['input'],
