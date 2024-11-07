@@ -28,17 +28,30 @@
 
 		return type.replace(/Nullable\((.*)\)/, '$1');
 	}
+
+	let search = $state('');
+
+	function filter(sources: DataSource[], search: string) {
+		if (!search) return sources;
+
+		return sources.filter(
+			(s) =>
+				s.name.toLowerCase().includes(search.toLowerCase()) ||
+				s.slug.includes(search.toLowerCase()) ||
+				s.describe?.data.some((c) => (c.name as string).toLowerCase().includes(search))
+		);
+	}
 </script>
 
 <section>
 	<nav class="Tabs">
-		<button aria-current="true">Source</button>
+		<button aria-current="true">Sources</button>
 		<button>Queries</button>
 		<button>History</button>
 	</nav>
-	<SearchBar />
+	<SearchBar bind:value={search} />
 	<article class="DataSources">
-		{#each datasources as datasource, i}
+		{#each filter(datasources, search) as datasource, i}
 			<details open={i === 0}>
 				<summary>
 					{#if datasource.type === 'MergeTree'}
