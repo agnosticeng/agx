@@ -12,7 +12,7 @@ bindgen = "0.70.1"
 
 [dependencies]
 tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
-tauri = { version = "1", features = ["shell-open"] }
+tauri = { version = "1", features = [ "dialog-open", "shell-open"] }
 thiserror = "1"
 
 [features]

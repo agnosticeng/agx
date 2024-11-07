@@ -2,12 +2,14 @@
 	import SearchBar from '$lib/components/SearchBar.svelte';
 	import type { DataSource } from '$lib/datasources/types';
 	import { CircleStack, TableCells } from '@agnosticeng/heroicons-svelte/outline';
+	import AddDataSourceDialog from './AddDataSourceDialog.svelte';
 
 	type Props = {
 		datasources?: DataSource[];
+		onCreate?: (source: DataSource) => void | Promise<void>;
 	};
 
-	let { datasources = $bindable([]) }: Props = $props();
+	let { datasources = [], onCreate }: Props = $props();
 
 	const DATASOURCE_TYPE_COLOR_MAP: Record<DataSource['type'], string> = {
 		CSV: 'hsl(58deg 37% 28%)',
@@ -60,6 +62,13 @@
 			</details>
 		{/each}
 	</article>
+	<div class="Actions">
+		<AddDataSourceDialog {onCreate}>
+			{#snippet children({ open })}
+				<button onclick={open}>+</button>
+			{/snippet}
+		</AddDataSourceDialog>
+	</div>
 </section>
 
 <style>
@@ -158,6 +167,19 @@
 					text-align: center;
 					font-family: 'Fira Mono', monospace;
 				}
+			}
+		}
+	}
+
+	.Actions {
+		& > button {
+			background-color: hsl(0deg 0% 33%);
+			padding: 2px 8px;
+			border-radius: 3px;
+			cursor: pointer;
+
+			&:is(:active) {
+				background-color: hsl(0deg 0% 52%);
 			}
 		}
 	}

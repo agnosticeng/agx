@@ -6,16 +6,21 @@
 	import { ProxyDialect } from './SQLDialect';
 	import { untrack } from 'svelte';
 	import './codemirror.css';
+	import type { DataSource } from '$lib/datasources';
+	import { datasourceToCodeMirrorSQLSchema } from './utils';
 
 	type Props = {
 		value: string;
 		onExec?: () => unknown;
+		sources?: DataSource[];
 	};
 
-	let { value = $bindable(''), onExec }: Props = $props();
+	let { value = $bindable(''), onExec, sources = [] }: Props = $props();
 
 	let container: HTMLDivElement;
 	let editor_view: EditorView;
+
+	let schema = $derived.by(() => datasourceToCodeMirrorSQLSchema(sources));
 
 	$effect(() => {
 		editor_view = new EditorView({ parent: container });
@@ -26,7 +31,7 @@
 				...default_extensions,
 				default_keymaps,
 				EditorView.darkTheme.of(true),
-				sql({ dialect: ProxyDialect }),
+				sql({ dialect: ProxyDialect, schema }),
 				EditorView.updateListener.of((update) => {
 					if (update.docChanged) {
 						value = update.state.doc.toString();

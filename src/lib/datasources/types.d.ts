@@ -5,6 +5,6 @@ export type DataSource = {
 	slug: string;
 	describe?: CHResponse;
 	type: 'Parquet' | 'CSV' | 'MergeTree';
-	path: `file(${string})` | `s3(${string})`;
+	path: `file('${string}', ${string})` | `s3('${string}', '${string}')`;
 	timestamp: number;
 };

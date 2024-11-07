@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Table from '$lib/table.svelte';
-	import Editor from '$lib/editor.svelte';
+	import { Editor, applySlugs } from '$lib/editor';
 	import { exec, type CHResponse } from '$lib/query';
 	import VerticalPanel from '$lib/components/VerticalPanel.svelte';
 	import type { DataSource } from '$lib/datasources/types';
@@ -47,15 +47,26 @@
 		return path.split('/').pop()!.split('/').pop()!.split('.').slice(0, -1).join('');
 	}
 
-	$effect(() => {
-		console.log($state.snapshot(datasources));
-	});
+	async function handleCreate(source: DataSource) {
+		const describe = await exec(`DESCRIBE ${source.path}`);
+		if (!describe) return;
+
+		datasources.push({ ...source, describe });
+		await setDataSources(datasources);
+	}
+
+	let query = $state('');
+	async function handleExec() {
+		response = await exec(applySlugs(query, datasources));
+	}
 </script>
 
 <section class="screen">
-	<VerticalPanel bind:datasources />
+	<VerticalPanel {datasources} onCreate={handleCreate} />
 	<section class="right">
-		<Editor bind:response />
+		<div>
+			<Editor bind:value={query} onExec={handleExec} sources={datasources} />
+		</div>
 		<Table {response} />
 	</section>
 </section>
@@ -68,5 +79,12 @@
 
 	.right {
 		flex-grow: 1;
+
+		& > div {
+			width: 100%;
+			height: 50vh;
+			padding: 2px;
+			overflow: hidden;
+		}
 	}
 </style>
