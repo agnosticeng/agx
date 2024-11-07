@@ -6,7 +6,6 @@ export const load = (async () => {
 	if (!datasources) {
 		datasources = await getDefaultDataSources();
 		await Store.setDataSources(datasources);
-		await Store.save();
 	}
 
 	return { datasources };
