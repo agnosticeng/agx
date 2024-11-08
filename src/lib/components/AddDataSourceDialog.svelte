@@ -2,7 +2,8 @@
 	import type { DataSource } from '$lib/datasources';
 	import { slugify } from '$lib/slugify';
 	import { dialog } from '@tauri-apps/api';
-	import type { Snippet } from 'svelte';
+	import { appWindow } from '@tauri-apps/api/window';
+	import { tick, type Snippet } from 'svelte';
 
 	interface Props {
 		children?: Snippet<[{ open: () => void }]>;
@@ -67,6 +68,26 @@
 			e.currentTarget.close();
 		}
 	}
+
+	appWindow.onFileDropEvent(async (event) => {
+		if (event.payload.type !== 'drop') return;
+		const path = event.payload.paths[0];
+		const ext = get_extension(path);
+		if (ext && ['csv', 'parquet'].includes(ext.toLowerCase())) {
+			modal.showModal();
+			await tick();
+			path_value = path;
+			name_value = get_filename(path);
+		}
+	});
+
+	function get_extension(path: string) {
+		return path.split('.').pop();
+	}
+
+	function get_filename(path: string) {
+		return path.split('/').pop()!.split('.').slice(0, -1).join('');
+	}
 </script>
 
 {@render children?.({ open: () => modal.showModal() })}
@@ -118,7 +139,13 @@
 		</label>
 
 		<div class="Actions">
-			<button onclick={() => modal.close()}>Cancel</button>
+			<button
+				type="button"
+				onclick={() => {
+					modal.close();
+					modal.querySelector('form')?.reset();
+				}}>Cancel</button
+			>
 			<button type="submit">Add source</button>
 		</div>
 	</form>
