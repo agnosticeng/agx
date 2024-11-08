@@ -86,7 +86,6 @@
 
 <style>
 	section {
-		width: var(--side-bar-width);
 		padding: 14px 18px;
 		background-color: hsla(0deg 0% 9%);
 
@@ -94,7 +93,7 @@
 		flex-direction: column;
 		gap: 18px;
 
-		overflow: auto;
+		overflow-y: auto !important;
 	}
 
 	.Tabs {

@@ -8,6 +8,7 @@
 	import { slugify } from '$lib/slugify';
 	import type { PageData } from './$types';
 	import { setDataSources } from '$lib/datasources/store';
+	import SplitPane from '$lib/components/SplitPane.svelte';
 
 	let response: CHResponse = $state.raw(undefined);
 
@@ -62,29 +63,28 @@
 </script>
 
 <section class="screen">
-	<VerticalPanel {datasources} onCreate={handleCreate} />
-	<section class="right">
-		<div>
-			<Editor bind:value={query} onExec={handleExec} sources={datasources} />
-		</div>
-		<Table {response} />
-	</section>
+	<SplitPane orientation="horizontal" position="242px" min="242px" max="40%">
+		{#snippet a()}
+			<VerticalPanel {datasources} onCreate={handleCreate} />
+		{/snippet}
+		{#snippet b()}
+			<section class="right">
+				<SplitPane orientation="vertical" min="20%" max="80%">
+					{#snippet a()}
+						<Editor bind:value={query} onExec={handleExec} sources={datasources} />
+					{/snippet}
+					{#snippet b()}
+						<Table {response} />
+					{/snippet}
+				</SplitPane>
+			</section>
+		{/snippet}
+	</SplitPane>
 </section>
 
 <style>
 	.screen {
 		display: flex;
 		height: 100vh;
-	}
-
-	.right {
-		flex-grow: 1;
-
-		& > div {
-			width: 100%;
-			height: 50vh;
-			padding: 2px;
-			overflow: hidden;
-		}
 	}
 </style>
