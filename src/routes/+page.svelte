@@ -18,7 +18,14 @@
 		const describe = await exec(`DESCRIBE ${source.path}`);
 		if (!describe) return;
 
-		datasources.push({ ...source, describe });
+		const index = datasources.findIndex((s) => s.slug === source.slug);
+
+		if (index !== -1) {
+			datasources[index] = { ...source, describe };
+		} else {
+			datasources.push({ ...source, describe });
+		}
+
 		await setDataSources(datasources);
 	}
 

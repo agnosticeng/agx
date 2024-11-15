@@ -5,34 +5,40 @@
 </script>
 
 <section>
-	{#if response}
-		<table>
-			<thead>
-				<tr>
-					{#each response.meta as column (column.name)}
-						<th>{column.name} ({column.type})</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each response.data as row (row)}
+	<div>
+		{#if response}
+			<table>
+				<thead>
 					<tr>
-						{#each Object.entries(row) as [key, value] (key)}
-							<td>{value}</td>
+						{#each response.meta as column (column.name)}
+							<th>{column.name} ({column.type})</th>
 						{/each}
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-	{/if}
+				</thead>
+				<tbody>
+					{#each response.data as row (row)}
+						<tr>
+							{#each Object.entries(row) as [key, value] (key)}
+								<td>{value}</td>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		{/if}
+	</div>
 </section>
 
 <style>
 	section {
 		background: rgba(40, 40, 40, 1);
 		color: #f6f6f6;
-		height: 50vh;
-		overflow: scroll;
+
+		& > div {
+			height: 100%;
+			width: 100%;
+			overflow: auto;
+		}
 	}
 
 	tr {

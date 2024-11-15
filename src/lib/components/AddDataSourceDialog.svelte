@@ -74,8 +74,10 @@
 		const path = event.payload.paths[0];
 		const ext = get_extension(path);
 		if (ext && ['csv', 'parquet'].includes(ext.toLowerCase())) {
-			modal.showModal();
-			await tick();
+			if (!modal.open) {
+				modal.showModal();
+				await tick();
+			}
 			path_value = path;
 			name_value = get_filename(path);
 		}
