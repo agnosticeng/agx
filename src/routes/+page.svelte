@@ -30,8 +30,13 @@
 	}
 
 	let query = $state('');
+	let loading = $state(false);
 	async function handleExec() {
-		response = await exec(applySlugs(query, datasources));
+		const id = setTimeout(() => (loading = true), 250);
+		response = await exec(applySlugs(query, datasources)).finally(() => {
+			clearTimeout(id);
+			loading = false;
+		});
 	}
 </script>
 
@@ -47,7 +52,7 @@
 						<Editor bind:value={query} onExec={handleExec} sources={datasources} />
 					{/snippet}
 					{#snippet b()}
-						<Table {response} />
+						<Table {response} {loading} />
 					{/snippet}
 				</SplitPane>
 			</section>

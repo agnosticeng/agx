@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { CHResponse } from './query';
 
-	let { response }: { response: CHResponse } = $props();
+	let { response, loading }: { response: CHResponse; loading: boolean } = $props();
 </script>
 
 <section>
 	<div>
-		{#if response}
+		{#if response && !loading}
 			<table>
 				<thead>
 					<tr>

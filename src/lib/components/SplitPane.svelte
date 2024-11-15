@@ -159,6 +159,14 @@
 		background: rgba(255, 255, 255, 0.0001);
 	}
 
+	.horizontal + .mousecatcher {
+		cursor: ew-resize;
+	}
+
+	.vertical + .mousecatcher {
+		cursor: ns-resize;
+	}
+
 	.divider {
 		position: absolute;
 		touch-action: none !important;

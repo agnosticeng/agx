@@ -62,6 +62,6 @@
 	div {
 		width: 100%;
 		height: 100%;
-		padding: 2px;
+		padding: 7px 2px;
 	}
 </style>

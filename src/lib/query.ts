@@ -18,5 +18,7 @@ export type CHResponse =
 	| {
 			meta: Array<{ name: string; type: string }>;
 			data: Array<{ [key: string]: unknown }>;
+			rows: number;
+			statistics: { elapsed: number };
 	  }
 	| undefined;
