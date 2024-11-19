@@ -1,11 +1,11 @@
 <script lang="ts">
+	import Result from '$lib/components/Result.svelte';
 	import SplitPane from '$lib/components/SplitPane.svelte';
 	import VerticalPanel from '$lib/components/VerticalPanel.svelte';
 	import { setDataSources } from '$lib/datasources/store';
 	import type { DataSource } from '$lib/datasources/types';
 	import { Editor, applySlugs } from '$lib/editor';
 	import { exec, type CHResponse } from '$lib/query';
-	import Table from '$lib/table.svelte';
 	import type { PageData } from './$types';
 
 	let response: CHResponse = $state.raw(undefined);
@@ -52,7 +52,7 @@
 						<Editor bind:value={query} onExec={handleExec} sources={datasources} />
 					{/snippet}
 					{#snippet b()}
-						<Table {response} {loading} />
+						<Result {response} {loading} />
 					{/snippet}
 				</SplitPane>
 			</section>
