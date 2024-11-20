@@ -13,3 +13,15 @@ export function resolve_type(_type: string) {
 function normalize_type(type: string) {
 	return type.replace(/Nullable\((.*)\)/, '$1').replace(/\(\d+(, (.*))?\)/, '');
 }
+
+/**
+select
+	date_trunc('day', timestamp) as unix_time,
+	count(*) as event_count
+from
+	agnostic_logs
+where
+	timestamp >= now() - interval 2 month
+group by unix_time
+order by unix_time asc
+ */

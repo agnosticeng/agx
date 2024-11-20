@@ -21,13 +21,21 @@
       "dialog": {
         "all": false,
         "open": true
+      },
+      "window": {
+        "all": false,
+        "maximize": true,
+        "unmaximize": true,
+        "startDragging": true
       }
     },
     "windows": [
       {
         "title": "agx",
         "width": 1024,
-        "height": 768
+        "height": 768,
+        "theme": "Dark",
+        "titleBarStyle": "Overlay"
       }
     ],
     "security": {

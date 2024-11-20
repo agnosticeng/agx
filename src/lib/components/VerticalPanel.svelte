@@ -87,7 +87,7 @@
 <style>
 	section {
 		padding: 14px 18px;
-		background-color: hsla(0deg 0% 9%);
+		background-color: hsl(0deg 0% 9%);
 
 		display: flex;
 		flex-direction: column;

@@ -5,7 +5,7 @@
 
 @layer variables {
   :root {
-    --side-bar-width: 242px;
+    --window-title-bar-height: 30px;
 
     font-size: 0.75rem;
   }

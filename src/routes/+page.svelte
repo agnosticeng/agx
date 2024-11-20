@@ -40,6 +40,13 @@
 	}
 </script>
 
+<header data-tauri-drag-region>
+	<div>
+		<button>Rename</button>
+		<button>Save</button>
+	</div>
+</header>
+
 <section class="screen">
 	<SplitPane orientation="horizontal" position="242px" min="242px" max="40%">
 		{#snippet a()}
@@ -61,8 +68,44 @@
 </section>
 
 <style>
+	header {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: var(--window-title-bar-height);
+		background-color: hsl(0deg 0% 18%);
+		user-select: none;
+		-webkit-user-select: none;
+
+		display: flex;
+		align-items: center;
+		justify-content: end;
+		padding: 0 8px;
+
+		& > div {
+			& > button {
+				appearance: none;
+				outline: none;
+				border: none;
+				font-size: 10px;
+				font-weight: 500;
+				background-color: hsl(0deg 0% 9%);
+				padding: 4px 10px;
+				border-radius: 3px;
+
+				cursor: pointer;
+
+				&:is(:hover, :focus-within) {
+					background-color: hsl(0deg 0% 10%);
+				}
+			}
+		}
+	}
+
 	.screen {
 		display: flex;
+		padding-top: var(--window-title-bar-height);
 		height: 100vh;
 	}
 </style>

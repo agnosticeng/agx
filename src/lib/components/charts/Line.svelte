@@ -215,6 +215,7 @@
 			flex-direction: column;
 			gap: 4px;
 			user-select: none;
+			-webkit-user-select: none;
 			position: absolute;
 			top: 50%;
 			left: var(--left);
