@@ -1,34 +1,23 @@
 <script lang="ts">
 	import type { CHResponse } from '$lib/query';
-	import Line, { applyType, isValidType } from './charts/Line.svelte';
+	import Line, { applyType, isValidType } from './charts/Line/Line.svelte';
 	import { resolve_type } from './charts/utils';
 
 	interface Props {
 		response: CHResponse;
+		x_axis: string;
+		y_axis: string;
 	}
 
-	let { response }: Props = $props();
+	let { response, x_axis = $bindable(), y_axis = $bindable() }: Props = $props();
 
-	let y_axis = $state<string>('');
-	let x_axis = $state<string>('');
+	const x_type = $derived(
+		resolve_type(response?.meta.find((column) => column.name === x_axis)?.type ?? '')
+	);
 
-	const x_type = $derived.by(() => {
-		if (x_axis) {
-			const column = response?.meta.find((column) => column.name === x_axis!);
-			if (column) return resolve_type(column.type);
-		}
-
-		return 'unknown';
-	});
-
-	const y_type = $derived.by(() => {
-		if (y_axis) {
-			const column = response?.meta.find((column) => column.name === y_axis!);
-			if (column) return resolve_type(column.type);
-		}
-
-		return 'unknown';
-	});
+	const y_type = $derived(
+		resolve_type(response?.meta.find((column) => column.name === y_axis)?.type ?? '')
+	);
 </script>
 
 {#if response}
@@ -36,9 +25,25 @@
 		<div class="Chart">
 			{#if x_axis && y_axis}
 				{#if isValidType(x_type) && isValidType(y_type)}
-					{@const x = response.data.map((d) => applyType(d[x_axis!], x_type))}
-					{@const y = response.data.map((d) => applyType(d[y_axis!], y_type))}
-					<Line X={x} Y={y} {x_type} {y_type} x_label={x_axis} y_label={y_axis} />
+					<Line
+						data={response.data}
+						x_accessor={(d) => applyType(d[x_axis], x_type)}
+						y_accessor={(d) => applyType(d[y_axis], y_type)}
+						x_label={x_axis}
+						y_label={y_axis}
+						x_format={(x) => {
+							const value = x.valueOf();
+							return x_type === 'date'
+								? new Date(value).toLocaleString('en')
+								: (x_type === 'integer' ? Math.round(value) : value).toLocaleString('en');
+						}}
+						y_format={(y) => {
+							const value = y.valueOf();
+							return y_type === 'date'
+								? new Date(value).toLocaleString('en')
+								: (y_type === 'integer' ? Math.round(value) : value).toLocaleString('en');
+						}}
+					/>
 				{/if}
 			{/if}
 		</div>

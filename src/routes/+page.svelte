@@ -9,6 +9,7 @@
 	import type { PageData } from './$types';
 
 	let response: CHResponse = $state.raw(undefined);
+	$inspect(response);
 
 	let { data }: { data: PageData } = $props();
 
@@ -32,6 +33,8 @@
 	let query = $state('');
 	let loading = $state(false);
 	async function handleExec() {
+		if (loading) return;
+
 		const id = setTimeout(() => (loading = true), 250);
 		response = await exec(applySlugs(query, datasources)).finally(() => {
 			clearTimeout(id);
@@ -42,7 +45,7 @@
 
 <header data-tauri-drag-region>
 	<div>
-		<button>Rename</button>
+		<button onclick={handleExec} disabled={loading}>Run</button>
 		<button>Save</button>
 	</div>
 </header>
@@ -97,7 +100,7 @@
 				cursor: pointer;
 
 				&:is(:hover, :focus-within) {
-					background-color: hsl(0deg 0% 10%);
+					background-color: hsl(0deg 0% 15%);
 				}
 			}
 		}

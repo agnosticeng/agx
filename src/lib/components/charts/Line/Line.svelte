@@ -1,6 +1,6 @@
 <script lang="ts" module>
-	const authorized_types = ['number', 'integer', 'bigint', 'date'];
-	type ValidType = 'number' | 'integer' | 'bigint' | 'date';
+	const authorized_types = ['number', 'integer', 'date'];
+	type ValidType = 'number' | 'integer' | 'date';
 
 	export function isValidType(type: string): type is ValidType {
 		return authorized_types.includes(type);
@@ -12,53 +12,48 @@
 	}
 </script>
 
-<script lang="ts" generics="XValue extends d3.NumberValue, YValue extends d3.NumberValue">
+<script lang="ts" generics="Item">
 	import * as d3 from 'd3';
 	import { sineOut } from 'svelte/easing';
 	import { tweened } from 'svelte/motion';
 	import { fade } from 'svelte/transition';
+	import { line_chart, line_generator } from './graph';
 
 	interface Props {
 		color?: string;
+
 		/* eslint-disable no-undef */
-		X: XValue[];
-		Y: YValue[];
+		data: Array<Item>;
+		x_accessor: (item: Item) => d3.NumberValue;
+		y_accessor: (item: Item) => d3.NumberValue;
 		/* eslint-enable no-undef */
-		x_type: ValidType;
-		y_type: ValidType;
+
+		x_format: (x: d3.NumberValue) => string;
+		y_format: (y: d3.NumberValue) => string;
 
 		x_label: string;
 		y_label: string;
 	}
 
-	let { color = 'hsl(208deg 100% 66%)', X, Y, x_type, y_type, x_label, y_label }: Props = $props();
+	let {
+		color = 'hsl(208deg 100% 66%)',
+		data,
+		x_accessor,
+		y_accessor,
+		x_format,
+		y_format,
+		x_label,
+		y_label
+	}: Props = $props();
 
-	const line = d3.line().curve(d3.curveCardinal.tension(0.7));
-
-	const x_scale = $derived.by(() => {
-		return d3
-			.scaleLinear()
-			.domain(d3.extent(X) as [number, number])
-			.range([0, 100]);
-	});
-
-	const y_scale = $derived.by(() => {
-		return d3
-			.scaleLinear()
-			.domain(d3.extent(Y) as [number, number])
-			.range([100, 0]);
-	});
-
-	const ticks = $derived(y_scale.ticks(7));
-
-	const coords = $derived(X.map((x, i) => [x_scale(x), y_scale(Y[i])] as [number, number]));
+	const { scales, coords } = $derived(line_chart(data, { x_accessor, y_accessor }));
+	const ticks = $derived(scales.y.ticks(7));
 
 	const cursor = tweened<number | undefined>(undefined, { easing: sineOut });
-	const tooltip_scale = $derived.by(() => d3.scaleLinear(X, Y));
 
 	function handleMouseMove(e: PointerEvent) {
 		const [pointer_x] = d3.pointer(e);
-		cursor.set(x_scale.invert(pointer_x));
+		cursor.set(scales.x.invert(pointer_x));
 	}
 
 	let tooltip_element = $state<HTMLElement>();
@@ -67,7 +62,7 @@
 			if (value && tooltip_element) {
 				const max_width = tooltip_element.parentElement!.clientWidth;
 				const rect = tooltip_element.getBoundingClientRect();
-				const x = max_width * (x_scale(value) / 100);
+				const x = max_width * (scales.x(value) / 100);
 				tooltip_element.style.setProperty('--width', `${rect.width}px`);
 				tooltip_element.classList.toggle('Revert', max_width < x + rect.width);
 			}
@@ -78,7 +73,7 @@
 <div class="Container">
 	<div class="Axis">
 		{#each ticks as tick (tick)}
-			<div class="Tick" style:top="{y_scale(tick)}%">
+			<div class="Tick" style:top="{scales.y(tick)}%">
 				<span>{tick.toLocaleString('en')}</span>
 				<div class="Line"></div>
 			</div>
@@ -86,12 +81,12 @@
 	</div>
 	<svg viewBox="0 0 100 100" preserveAspectRatio="none" onpointermove={handleMouseMove}>
 		<g stroke-width="2" fill="transparent">
-			<path d={line(coords)} stroke={color} />
+			<path d={line_generator(coords)} stroke={color} />
 		</g>
 		{#if $cursor}
 			<line
-				x1={x_scale($cursor)}
-				x2={x_scale($cursor)}
+				x1={scales.x($cursor)}
+				x2={scales.x($cursor)}
 				y1="0"
 				y2="100"
 				stroke="var(--line-color)"
@@ -101,9 +96,9 @@
 	</svg>
 	<div class="Cursors">
 		{#if $cursor}
-			{@const y_value = tooltip_scale($cursor)}
-			{@const y_ = y_scale(y_value)}
-			{@const x_ = x_scale($cursor)}
+			{@const y_value = scales.x_to_y($cursor)}
+			{@const y_ = scales.y(y_value)}
+			{@const x_ = scales.x($cursor)}
 			<span class="circle" style:left="{x_}%" style:top="{y_}%">
 				<span style:background-color={color}></span>
 			</span>
@@ -117,25 +112,11 @@
 			>
 				<h4>
 					<span>{x_label}: </span>
-					{#if x_type === 'date'}
-						{new Date($cursor).toLocaleString('en')}
-					{:else if x_type === 'integer'}
-						{Math.round($cursor)}
-					{:else}
-						{$cursor}
-					{/if}
+					<span>{x_format($cursor)}</span>
 				</h4>
 				<article>
 					<span>{y_label}: </span>
-					<span>
-						{#if y_type === 'date'}
-							{new Date(y_value.valueOf()).toLocaleString('en')}
-						{:else if y_type === 'integer'}
-							{Math.round(y_value.valueOf()).toLocaleString('en')}
-						{:else}
-							{y_value.valueOf().toLocaleString('en')}
-						{/if}
-					</span>
+					<span>{y_format(y_value)}</span>
 				</article>
 			</section>
 		{/if}

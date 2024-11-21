@@ -3,10 +3,12 @@
 	import Table from '$lib/components/Table.svelte';
 	import Chart from './Chart.svelte';
 
-	let { response, loading }: { response: CHResponse; loading: boolean } = $props();
-	$inspect(loading);
+	let { response }: { response: CHResponse; loading: boolean } = $props();
 
 	let tab = $state<'data' | 'chart'>('data');
+
+	let y_axis = $state<string>('');
+	let x_axis = $state<string>('');
 </script>
 
 <section>
@@ -14,7 +16,7 @@
 		{#if tab === 'data'}
 			<Table {response} />
 		{:else if tab === 'chart'}
-			<Chart {response} />
+			<Chart {response} bind:x_axis bind:y_axis />
 		{/if}
 	</div>
 	<nav>
@@ -38,6 +40,8 @@
 		& > nav {
 			padding: 7px 5px;
 			border-top: 1px solid hsl(0deg 0% 29%);
+			user-select: none;
+			-webkit-user-select: none;
 
 			display: flex;
 			align-items: center;

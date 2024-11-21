@@ -14,10 +14,14 @@ export async function exec(query: string): Promise<CHResponse> {
 	}
 }
 
+type SerializableType = string | boolean | number;
+
 export type CHResponse =
 	| {
 			meta: Array<{ name: string; type: string }>;
-			data: Array<{ [key: string]: unknown }>;
+			data: Array<
+				Record<string, SerializableType | SerializableType[] | Record<string, SerializableType>>
+			>;
 			rows: number;
 			statistics: { elapsed: number };
 	  }
