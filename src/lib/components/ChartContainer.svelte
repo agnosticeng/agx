@@ -2,6 +2,7 @@
 	import { applyType, formatValue, isSupportedType, LineChart } from '$lib/components/charts/Line';
 	import type { CHResponse } from '$lib/query';
 	import { BarChart } from './charts/Bar';
+	import { PieChart } from './charts/Pie';
 
 	interface Props {
 		response: NonNullable<CHResponse>;
@@ -46,6 +47,15 @@
 					y_label={y_axis}
 				/>
 			{/if}
+			{#if chart_type === 'pie'}
+				<PieChart
+					data={response.data}
+					name={(d) => d[x_axis]}
+					value={(d) => applyType(d[y_axis], y_type)}
+					name-label={x_axis}
+					value-label={y_axis}
+				/>
+			{/if}
 		{/if}
 	</div>
 	<div class="Actions">
@@ -54,6 +64,7 @@
 			<select bind:value={chart_type}>
 				<option value="line">Line chart</option>
 				<option value="bar">Bar chart</option>
+				<option value="pie">Pie chart</option>
 			</select>
 		</label>
 		<label>
