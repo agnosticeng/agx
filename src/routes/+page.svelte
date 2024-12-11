@@ -10,6 +10,7 @@
 	import { Datasets } from '$lib/sources.svelte';
 	import { set_sources_in_store } from '$lib/store';
 	import { applySlugs } from '$lib/utils/datasets';
+	import { format } from 'sql-formatter';
 	import type { PageData } from './$types';
 
 	let response: CHResponse = $state.raw(undefined);
@@ -23,6 +24,16 @@
 		if (loading) return;
 		loading = true;
 		response = await exec(applySlugs(query, datasets.sources)).finally(() => (loading = false));
+	}
+
+	function handleFormat() {
+		query = format(query, {
+			keywordCase: 'lower',
+			tabWidth: 2,
+			useTabs: true,
+			expressionWidth: 80,
+			language: 'postgresql'
+		});
 	}
 
 	const datasets = new Datasets(data.sources, {
@@ -45,6 +56,7 @@
 
 <WindowTitleBar>
 	{#snippet actions()}
+		<button onclick={handleFormat}>Format</button>
 		<button onclick={handleExec} disabled={loading}>Run</button>
 	{/snippet}
 </WindowTitleBar>

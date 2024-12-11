@@ -24,6 +24,7 @@
 		"@tauri-apps/api": "^1",
 		"d3": "^7.9.0",
 		"normalize.css": "^8.0.1",
+		"sql-formatter": "^15.4.6",
 		"tauri-plugin-context-menu": "^0.8.0",
 		"tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#v1"
 	},
