@@ -6,6 +6,7 @@
 	import { SplitPane } from '$lib/components/SplitPane';
 	import WindowTitleBar from '$lib/components/WindowTitleBar.svelte';
 	import { set_app_context } from '$lib/context';
+	import { History } from '$lib/history.svelte';
 	import { exec, type CHResponse } from '$lib/query';
 	import { Datasets } from '$lib/sources.svelte';
 	import { set_sources_in_store } from '$lib/store';
@@ -24,6 +25,7 @@
 		if (loading) return;
 		loading = true;
 		response = await exec(applySlugs(query, datasets.sources)).finally(() => (loading = false));
+		if (response) history.push(query);
 	}
 
 	function handleFormat() {
@@ -45,7 +47,13 @@
 		}
 	});
 
-	set_app_context({ datasets });
+	const history = new History<string>([], {
+		onupdate(entries) {
+			console.log(entries);
+		}
+	});
+
+	set_app_context({ datasets, history });
 
 	$effect.pre(() => {
 		if (!datasets.sources.length) {
