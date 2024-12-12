@@ -1,28 +1,57 @@
 <script lang="ts">
 	import { get_app_context } from '$lib/context';
-	import { show as showMenu } from './contextmenu';
+	import { format_date } from '$lib/utils/date';
+	import { generate } from '../Editor/html_generater';
 
 	const { history } = get_app_context();
+
+	const sections = $derived(
+		Object.groupBy(history.entries, (entry) => format_date(new Date(entry.ts), "dd MMM 'yy"))
+	);
+
+	function handleKeydown(e: KeyboardEvent & { currentTarget: EventTarget & HTMLOListElement }) {
+		if (!(e.target instanceof HTMLElement)) return;
+		const host = e.currentTarget;
+		const fucusable_elements = Array.from<HTMLElement>(
+			host.querySelectorAll('[tabindex]:is(summary, li)')
+		);
+
+		const index = fucusable_elements.indexOf(e.target);
+
+		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+			e.preventDefault();
+
+			const direction = e.key === 'ArrowDown' ? 1 : -1;
+			const length = fucusable_elements.length;
+			const nextIndex = (length + index + direction) % length;
+
+			const next = fucusable_elements[nextIndex];
+
+			fucusable_elements.forEach((e) => (e.tabIndex = -1));
+
+			next.tabIndex = 0;
+			next.focus();
+		}
+	}
 </script>
 
-<ol>
-	{#each history.entries as entry}
-		<li>
-			<details>
-				<summary
-					oncontextmenu={async (e) => {
-						e.preventDefault();
-						const element = e.currentTarget;
-						element.classList.add('Selected');
-						await showMenu(history, entry);
-						element.classList.remove('Selected');
-					}}
-				>
-					{new Date(entry.ts).toUTCString()}
-				</summary>
-				<pre>{entry.state}</pre>
-			</details>
-		</li>
+<ol onkeydown={handleKeydown} role="menu">
+	{#each Object.entries(sections) as [section, entries]}
+		{#if entries}
+			<li>
+				<details>
+					<summary tabindex="-1">{section}</summary>
+					<ol>
+						{#each entries as entry}
+							<li tabindex="-1">
+								<span class="time">{new Date(entry.ts).toLocaleTimeString('en-US')}</span>
+								{@html generate(entry.state)}
+							</li>
+						{/each}
+					</ol>
+				</details>
+			</li>
+		{/if}
 	{/each}
 </ol>
 
@@ -34,6 +63,10 @@
 
 		flex: 1;
 		overflow-y: auto;
+
+		summary + & {
+			padding-left: 18px;
+		}
 	}
 
 	summary {
@@ -45,13 +78,28 @@
 		padding: 3px 5px;
 		border-radius: 3px;
 
-		&:global(.Selected) {
+		&:focus {
+			outline: none;
 			background-color: hsl(210deg 100% 52%);
 		}
 	}
 
-	pre {
-		padding-left: 14px;
-		overflow-x: auto;
+	.time {
+		font-size: 10px;
+		color: hsl(0deg 0% 96%);
+	}
+
+	li {
+		padding: 3px 5px;
+		border-radius: 3px;
+
+		summary + ol > & {
+			padding: 3px 0;
+		}
+
+		&:focus {
+			outline: none;
+			background-color: hsl(210deg 100% 52%);
+		}
 	}
 </style>
