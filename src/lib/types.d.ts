@@ -1,5 +1,5 @@
-import type { Datasets } from '$lib/sources.svelte';
-import type { HistorySource } from './components/History/history_source.svelte';
+import type { Datasets } from '$lib/components/Datasets/sources.svelte';
+import type { HistorySource } from '$lib/components/History/history_source.svelte';
 
 export interface ColumnDescriptor {
 	name: string;

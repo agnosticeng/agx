@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Datasets } from '$lib/components/Datasets/sources.svelte';
 	import { DEFAULT_SOURCE } from '$lib/components/Datasets/utils';
 	import { datasets_to_schema, Editor } from '$lib/components/Editor';
 	import { QueryHistorySource } from '$lib/components/History/history_source.svelte';
@@ -8,7 +9,6 @@
 	import WindowTitleBar from '$lib/components/WindowTitleBar.svelte';
 	import { set_app_context } from '$lib/context';
 	import { exec, type CHResponse } from '$lib/query';
-	import { Datasets } from '$lib/sources.svelte';
 	import { set_sources_in_store } from '$lib/store';
 	import { applySlugs } from '$lib/utils/datasets';
 	import { format } from 'sql-formatter';
