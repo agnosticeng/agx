@@ -27,6 +27,19 @@
       "dialog": {
         "all": false,
         "open": true
+      },
+      "fs": {
+        "all": false,
+        "createDir": true,
+        "exists": true,
+        "readDir": true,
+        "readFile": true,
+        "removeFile": true,
+        "scope": [
+          "$APPDATA/**/*",
+          "$APPLOCALDATA/**/*"
+        ],
+        "writeFile": true
       }
     },
     "windows": [

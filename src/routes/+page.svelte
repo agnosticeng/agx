@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { DEFAULT_SOURCE } from '$lib/components/Datasets/utils';
 	import { datasets_to_schema, Editor } from '$lib/components/Editor';
+	import { QueryHistorySource } from '$lib/components/History/history_source.svelte';
 	import Result from '$lib/components/Result.svelte';
 	import SideBar from '$lib/components/SideBar.svelte';
 	import { SplitPane } from '$lib/components/SplitPane';
 	import WindowTitleBar from '$lib/components/WindowTitleBar.svelte';
 	import { set_app_context } from '$lib/context';
-	import { History } from '$lib/history.svelte';
 	import { exec, type CHResponse } from '$lib/query';
 	import { Datasets } from '$lib/sources.svelte';
 	import { set_sources_in_store } from '$lib/store';
@@ -47,10 +47,10 @@
 		}
 	});
 
-	const history = new History<string>([], {
-		onupdate(entries) {
-			console.log(entries);
-		}
+	const history = new QueryHistorySource();
+
+	$effect.pre(() => {
+		history.init();
 	});
 
 	set_app_context({ datasets, history });

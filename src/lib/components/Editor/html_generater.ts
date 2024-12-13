@@ -14,7 +14,7 @@ export function generate(code: string) {
 	const content = document.createElement('div');
 	content.classList.add('cm-content');
 	content.style.tabSize = '2';
-	content.style.whiteSpace = 'pre';
+	content.style.whiteSpace = 'pre-wrap';
 
 	scroller.appendChild(content);
 

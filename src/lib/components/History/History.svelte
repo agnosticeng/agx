@@ -6,7 +6,7 @@
 	const { history } = get_app_context();
 
 	const sections = $derived(
-		Object.groupBy(history.entries, (entry) => format_date(new Date(entry.ts), "dd MMM 'yy"))
+		Object.groupBy(history.entries, (entry) => format_date(new Date(entry.timestamp), "dd MMM 'yy"))
 	);
 
 	function handleKeydown(e: KeyboardEvent & { currentTarget: EventTarget & HTMLOListElement }) {
@@ -44,8 +44,8 @@
 					<ol>
 						{#each entries as entry}
 							<li tabindex="-1">
-								<span class="time">{new Date(entry.ts).toLocaleTimeString('en-US')}</span>
-								{@html generate(entry.state)}
+								<span class="time">{new Date(entry.timestamp).toLocaleTimeString('en-US')}</span>
+								{@html generate(entry.content)}
 							</li>
 						{/each}
 					</ol>

@@ -1,5 +1,5 @@
-import type { History } from '$lib/history.svelte';
 import type { Datasets } from '$lib/sources.svelte';
+import type { HistorySource } from './components/History/history_source.svelte';
 
 export interface ColumnDescriptor {
 	name: string;
@@ -22,5 +22,5 @@ type MaybePromise<T> = T | Promise<T>;
 
 export type AppContext = {
 	datasets: Datasets;
-	history: History<string>;
+	history: HistorySource;
 };
