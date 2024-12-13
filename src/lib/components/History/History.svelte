@@ -2,6 +2,8 @@
 	import { get_app_context } from '$lib/context';
 	import { format_date } from '$lib/utils/date';
 	import { generate } from '../Editor/html_generater';
+	import { show } from './contextmenu';
+	import { handleKeydown } from './focus';
 
 	const { history } = get_app_context();
 
@@ -9,29 +11,10 @@
 		Object.groupBy(history.entries, (entry) => format_date(new Date(entry.timestamp), "dd MMM 'yy"))
 	);
 
-	function handleKeydown(e: KeyboardEvent & { currentTarget: EventTarget & HTMLOListElement }) {
-		if (!(e.target instanceof HTMLElement)) return;
-		const host = e.currentTarget;
-		const fucusable_elements = Array.from<HTMLElement>(
-			host.querySelectorAll('[tabindex]:is(summary, li)')
-		);
-
-		const index = fucusable_elements.indexOf(e.target);
-
-		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-			e.preventDefault();
-
-			const direction = e.key === 'ArrowDown' ? 1 : -1;
-			const length = fucusable_elements.length;
-			const nextIndex = (length + index + direction) % length;
-
-			const next = fucusable_elements[nextIndex];
-
-			fucusable_elements.forEach((e) => (e.tabIndex = -1));
-
-			next.tabIndex = 0;
-			next.focus();
-		}
+	function cut_off_for_preview(code: string) {
+		const max_length = 100;
+		const need_ellipsis = code.length > max_length;
+		return need_ellipsis ? code.slice(0, max_length) + '\n...' : code;
 	}
 </script>
 
@@ -43,9 +26,15 @@
 					<summary tabindex="-1">{section}</summary>
 					<ol>
 						{#each entries as entry}
-							<li tabindex="-1">
+							<li
+								tabindex="-1"
+								oncontextmenu={(e) => {
+									e.preventDefault();
+									show(history, entry);
+								}}
+							>
 								<span class="time">{new Date(entry.timestamp).toLocaleTimeString('en-US')}</span>
-								{@html generate(entry.content)}
+								{@html generate(cut_off_for_preview(entry.content))}
 							</li>
 						{/each}
 					</ol>
@@ -93,8 +82,16 @@
 		padding: 3px 5px;
 		border-radius: 3px;
 
+		cursor: default;
+
 		summary + ol > & {
+			margin-top: 4px;
 			padding: 3px 0;
+
+			overflow: hidden;
+
+			user-select: none;
+			-webkit-user-select: none;
 		}
 
 		&:focus {

@@ -1,7 +1,7 @@
 import { fs } from '@tauri-apps/api';
 import { BaseDirectory, readTextFile } from '@tauri-apps/api/fs';
 
-interface QueryHistoryEntry {
+export interface QueryHistoryEntry {
 	timestamp: number;
 	content: string;
 	path: string;
