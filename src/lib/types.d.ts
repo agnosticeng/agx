@@ -1,3 +1,4 @@
+import type { Workspace } from './components/Editor';
 import type { Datasets } from './sources.svelte';
 
 export interface ColumnDescriptor {
@@ -21,4 +22,5 @@ type MaybePromise<T> = T | Promise<T>;
 
 export type AppContext = {
 	datasets: Datasets;
+	workspace: Workspace;
 };

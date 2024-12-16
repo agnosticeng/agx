@@ -11,9 +11,7 @@ export async function exec(query: string) {
 	}
 }
 
-export type CHResponse =
-	| {
-			meta: Array<{ name: string; type: string }>;
-			data: Array<{ [key: string]: any }>;
-	  }
-	| undefined;
+export type CHResponse = {
+	meta: Array<{ name: string; type: string }>;
+	data: Array<{ [key: string]: any }>;
+};

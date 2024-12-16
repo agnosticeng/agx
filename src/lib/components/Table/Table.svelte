@@ -3,7 +3,7 @@
 	import { Types } from './utils';
 
 	interface Props {
-		response: NonNullable<CHResponse>;
+		response: CHResponse;
 	}
 
 	let { response }: Props = $props();

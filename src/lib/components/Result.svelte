@@ -5,7 +5,7 @@
 	import ChartContainer from './ChartContainer.svelte';
 
 	interface Props {
-		response: CHResponse;
+		response?: CHResponse;
 	}
 
 	let { response }: Props = $props();

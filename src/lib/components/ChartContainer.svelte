@@ -4,7 +4,7 @@
 	import { BarChart } from './charts/Bar';
 
 	interface Props {
-		response: NonNullable<CHResponse>;
+		response: CHResponse;
 		x_axis: string;
 		y_axis: string;
 		type: string;
@@ -19,6 +19,12 @@
 
 	const x_type = $derived(response.meta.find((c) => c.name === x_axis)?.type ?? '');
 	const y_type = $derived(response.meta.find((c) => c.name === y_axis)?.type ?? '');
+
+	$effect(() => {
+		if (chart_type === 'line' && !isSupportedType(x_type)) {
+			x_axis = '';
+		}
+	});
 </script>
 
 <article>
@@ -61,7 +67,7 @@
 			<select bind:value={x_axis}>
 				<option value="">None</option>
 				{#each response.meta as column}
-					{#if isSupportedType(column.type)}
+					{#if isSupportedType(column.type) || chart_type === 'bar'}
 						<option value={column.name}>{column.name}</option>
 					{/if}
 				{/each}
