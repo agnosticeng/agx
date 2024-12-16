@@ -29,9 +29,7 @@ export function remove_nullable(type: string) {
 	return type.replace(/Nullable\((.*)\)/, '$1');
 }
 
-export function describe_to_column_descriptors(
-	response: NonNullable<CHResponse>
-): ColumnDescriptor[] {
+export function describe_to_column_descriptors(response: CHResponse): ColumnDescriptor[] {
 	return response.data.map((d) => {
 		return {
 			name: d.name as string,

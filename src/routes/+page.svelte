@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DEFAULT_SOURCE } from '$lib/components/Datasets/utils';
-	import { datasets_to_schema, Editor } from '$lib/components/Editor';
+	import { datasets_to_schema, Editor, Workspace } from '$lib/components/Editor';
 	import Result from '$lib/components/Result.svelte';
 	import SideBar from '$lib/components/SideBar.svelte';
 	import { SplitPane } from '$lib/components/SplitPane';
@@ -12,18 +12,11 @@
 	import { applySlugs } from '$lib/utils/datasets';
 	import type { PageData } from './$types';
 
-	let response: CHResponse = $state.raw(undefined);
+	let response = $state.raw<CHResponse>();
 
 	let { data }: { data: PageData } = $props();
 
-	let query = $state('');
 	let loading = $state(false);
-
-	async function handleExec() {
-		if (loading) return;
-		loading = true;
-		response = await exec(applySlugs(query, datasets.sources)).finally(() => (loading = false));
-	}
 
 	const datasets = new Datasets(data.sources, {
 		onreset(datasets) {
@@ -34,14 +27,33 @@
 		}
 	});
 
-	set_app_context({ datasets });
+	const workspace = new Workspace([{ name: 'agx_temp_file.sql', contents: '' }]);
+
+	set_app_context({ datasets, workspace });
 
 	$effect.pre(() => {
 		if (!datasets.sources.length) {
 			datasets.add(DEFAULT_SOURCE);
 		}
 	});
+
+	async function handleExec() {
+		if (loading) return;
+		loading = true;
+		response = await exec(applySlugs(workspace.current.contents, datasets.sources)).finally(
+			() => (loading = false)
+		);
+	}
+
+	function handleKeyDown(e: KeyboardEvent) {
+		if (e.metaKey && e.key === 'Enter') {
+			e.preventDefault();
+			handleExec();
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleKeyDown} />
 
 <WindowTitleBar>
 	{#snippet actions()}
@@ -57,11 +69,7 @@
 		{#snippet b()}
 			<SplitPane orientation="vertical" min="20%" max="80%" --color="hsl(0deg 0% 12%)">
 				{#snippet a()}
-					<Editor
-						bind:value={query}
-						onExec={handleExec}
-						schema={datasets_to_schema(datasets.sources)}
-					/>
+					<Editor {workspace} schema={datasets_to_schema(datasets.sources)} />
 				{/snippet}
 				{#snippet b()}
 					<Result {response} />
