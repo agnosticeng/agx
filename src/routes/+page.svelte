@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '$lib/sqlite';
 	import { exec, Sources, type CHResponse } from '$lib/ch-engine';
 	import { Editor, sources_to_schema } from '$lib/components/Editor';
 	import Result from '$lib/components/Result.svelte';
