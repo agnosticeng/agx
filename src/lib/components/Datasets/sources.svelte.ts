@@ -1,6 +1,6 @@
-import { describe_to_column_descriptors } from './components/Datasets/utils';
-import { exec } from './query';
-import type { Dataset, MaybePromise } from './types';
+import { exec } from '$lib//query';
+import type { Dataset, MaybePromise } from '$lib/types';
+import { describe_to_column_descriptors } from './utils';
 
 export interface RawSource {
 	/** Name of the Dataset */

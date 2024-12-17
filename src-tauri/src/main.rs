@@ -3,6 +3,7 @@
 mod chdb;
 mod clickhouse;
 mod commands;
+mod db;
 
 use std::borrow::Cow;
 
@@ -20,7 +21,11 @@ struct AppState {
 
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations(db::DB_PATH, db::get_migrations())
+                .build(),
+        )
         .plugin(tauri_plugin_context_menu::init())
         .setup(|app| {
             let working_dir = app.path_resolver().app_local_data_dir().unwrap();

@@ -25,7 +25,7 @@
 		"d3": "^7.9.0",
 		"normalize.css": "^8.0.1",
 		"tauri-plugin-context-menu": "^0.8.0",
-		"tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#v1"
+		"tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v1"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3.0.6",

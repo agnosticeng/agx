@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Datasets } from '$lib/components/Datasets/sources.svelte';
 	import { DEFAULT_SOURCE } from '$lib/components/Datasets/utils';
 	import { Editor } from '$lib/components/Editor';
 	import Result from '$lib/components/Result.svelte';
@@ -7,8 +8,6 @@
 	import WindowTitleBar from '$lib/components/WindowTitleBar.svelte';
 	import { set_app_context } from '$lib/context';
 	import { exec, type CHResponse } from '$lib/query';
-	import { Datasets } from '$lib/sources.svelte';
-	import { set_sources_in_store } from '$lib/store';
 	import { applySlugs } from '$lib/utils/datasets';
 	import type { PageData } from './$types';
 
@@ -26,12 +25,8 @@
 	}
 
 	const datasets = new Datasets(data.sources, {
-		onreset(datasets) {
-			set_sources_in_store(datasets);
-		},
-		onupdate(_dataset) {
-			set_sources_in_store(datasets.sources);
-		}
+		onreset(_datasets) {},
+		onupdate(_dataset) {}
 	});
 
 	set_app_context({ datasets });

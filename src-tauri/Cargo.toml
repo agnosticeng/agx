@@ -11,9 +11,10 @@ tauri-build = { version = "1", features = [] }
 bindgen = "0.70.1"
 
 [dependencies]
+serde_json = "1.0"
 tauri = { version = "1", features = [ "dialog-open", "window-unmaximize", "window-start-dragging", "window-maximize", "shell-open"] }
 tauri-plugin-context-menu = "0.8.2"
-tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1", features = [ "sqlite" ]  }
 thiserror = "1"
 
 [features]

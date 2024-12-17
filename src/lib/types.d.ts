@@ -1,4 +1,4 @@
-import type { Datasets } from './sources.svelte';
+import type { Datasets } from '$lib/components/Datasets/sources.svelte';
 
 export interface ColumnDescriptor {
 	name: string;
