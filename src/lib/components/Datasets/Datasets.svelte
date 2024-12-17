@@ -1,75 +1,52 @@
 <script lang="ts">
+	import { get_sources, type Source } from '$lib/ch-engine';
 	import SearchBar from '$lib/components/SearchBar.svelte';
-	import { get_app_context } from '$lib/context';
 	import Database from '$lib/icons/Database.svelte';
-	import Plus from '$lib/icons/Plus.svelte';
 	import Table from '$lib/icons/Table.svelte';
-	import { listen } from '@tauri-apps/api/event';
-	import { showMenu } from 'tauri-plugin-context-menu';
-	import AddDataset from './AddDataset.svelte';
+	import { untrack } from 'svelte';
 	import {
-		DATASOURCE_TYPE_COLOR_MAP,
-		DATASOURCE_TYPE_SHORT_NAME_MAP,
-		DEFAULT_SOURCE,
 		filter,
-		remove_nullable
+		remove_nullable,
+		SOURCE_TYPE_COLOR_MAP,
+		SOURCE_TYPE_SHORT_NAME_MAP
 	} from './utils';
 
-	const { datasets } = get_app_context();
+	let sources = $state.raw<Source[]>([]);
+	let reload = $state(0);
+	let loading = $state(false);
+
+	$effect.pre(() => {
+		reload;
+
+		if (untrack(() => loading)) return;
+
+		loading = true;
+
+		get_sources()
+			.then((_sources) => (sources = _sources))
+			.finally(() => (loading = false));
+	});
 
 	let search = $state<string>('');
-	const filtered = $derived(filter(datasets.sources, search));
-
-	let add_dataset_modal: ReturnType<typeof AddDataset>;
+	const filtered = $derived(filter(sources, search));
 </script>
 
 <SearchBar bind:value={search} />
+<div>
+	<button disabled={loading} onclick={() => (reload += 1)}>Refresh</button>
+</div>
 <article>
-	{#each filtered as source, i (source.slug)}
+	{#each filtered as source, i (source.name)}
 		<details open={i === 0}>
-			<summary
-				oncontextmenu={async (e) => {
-					e.preventDefault();
-					const element = e.currentTarget;
-					element.classList.add('Selected');
-					await showMenu({
-						theme: 'dark',
-						items: [
-							{
-								label: 'Reload',
-								event: () => datasets.refresh(source)
-							},
-							{
-								label: 'Copy path',
-								event: () => navigator.clipboard.writeText(source.path)
-							},
-							{
-								label: 'Copy alias',
-								event: () => navigator.clipboard.writeText(source.slug)
-							},
-							{ is_separator: true },
-							{
-								label: 'Remove',
-								event: () => datasets.remove(source),
-								disabled: source.slug === DEFAULT_SOURCE.slug
-							}
-						]
-					});
-
-					const unlistenMenuClose = await listen('menu-did-close', () => {
-						element.classList.remove('Selected');
-						unlistenMenuClose();
-					});
-				}}
-			>
-				{#if source.type === 'MergeTree'}
+			<summary>
+				{#if source.engine === 'MergeTree'}
 					<Database size="15" />
 				{:else}
 					<Table size="15" />
 				{/if}
 				<h3>{source.name}</h3>
-				<span class="Tag" style:background-color={DATASOURCE_TYPE_COLOR_MAP[source.type]}>
-					{DATASOURCE_TYPE_SHORT_NAME_MAP[source.type]}
+				<span class="Tag" style:background-color={SOURCE_TYPE_COLOR_MAP[source.engine]}>
+					{SOURCE_TYPE_SHORT_NAME_MAP[source.engine]}
 				</span>
 			</summary>
 			<ul>
@@ -82,18 +59,7 @@
 			</ul>
 		</details>
 	{/each}
-	<div class="Actions">
-		<button onclick={() => add_dataset_modal.show()}><Plus size="12" /></button>
-	</div>
 </article>
-
-<AddDataset
-	bind:this={add_dataset_modal}
-	onCreate={async (values) => {
-		const index = datasets.sources.findIndex((s) => s.slug === values.slug);
-		if (index === -1) datasets.add({ name: values.name, slug: values.slug, path_url: values.path });
-	}}
-/>
 
 <style>
 	article {
@@ -124,8 +90,17 @@
 			display: none;
 		}
 
-		&:global(.Selected) {
-			background-color: hsl(210deg 100% 52%);
+		& > :global(svg),
+		& > span {
+			flex-shrink: 0;
+		}
+
+		& > h3 {
+			flex-shrink: 1;
+
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			overflow: hidden;
 		}
 	}
 
@@ -184,29 +159,6 @@
 
 		&:last-of-type {
 			padding-bottom: 0;
-		}
-	}
-
-	div {
-		margin-top: 35px;
-
-		& > button {
-			/* Reset */
-			appearance: none;
-			outline: none;
-			border: none;
-
-			background-color: hsl(0deg 0% 33%);
-			padding: 2px 8px;
-			border-radius: 3px;
-			cursor: pointer;
-
-			display: flex;
-			align-items: center;
-
-			&:is(:active) {
-				background-color: hsl(0deg 0% 52%);
-			}
 		}
 	}
 </style>

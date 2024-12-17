@@ -1,14 +1,10 @@
 <script lang="ts">
-	import { Datasets } from '$lib/components/Datasets/sources.svelte';
-	import { DEFAULT_SOURCE } from '$lib/components/Datasets/utils';
+	import { exec, type CHResponse } from '$lib/ch-engine';
 	import { Editor } from '$lib/components/Editor';
 	import Result from '$lib/components/Result.svelte';
 	import SideBar from '$lib/components/SideBar.svelte';
 	import { SplitPane } from '$lib/components/SplitPane';
 	import WindowTitleBar from '$lib/components/WindowTitleBar.svelte';
-	import { set_app_context } from '$lib/context';
-	import { exec, type CHResponse } from '$lib/query';
-	import { applySlugs } from '$lib/utils/datasets';
 	import type { PageData } from './$types';
 
 	let response = $state.raw<CHResponse>();
@@ -21,21 +17,8 @@
 	async function handleExec() {
 		if (loading) return;
 		loading = true;
-		response = await exec(applySlugs(query, datasets.sources)).finally(() => (loading = false));
+		response = await exec(query).finally(() => (loading = false));
 	}
-
-	const datasets = new Datasets(data.sources, {
-		onreset(_datasets) {},
-		onupdate(_dataset) {}
-	});
-
-	set_app_context({ datasets });
-
-	$effect.pre(() => {
-		if (!datasets.sources.length) {
-			datasets.add(DEFAULT_SOURCE);
-		}
-	});
 </script>
 
 <WindowTitleBar>

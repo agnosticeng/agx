@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CHResponse } from '$lib/query';
+	import type { CHResponse } from '$lib/ch-engine';
 	import { Types } from './utils';
 
 	interface Props {

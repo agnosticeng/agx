@@ -1,6 +1,6 @@
 <script lang="ts">
+	import type { CHResponse } from '$lib/ch-engine';
 	import { applyType, formatValue, isSupportedType, LineChart } from '$lib/components/charts/Line';
-	import type { CHResponse } from '$lib/query';
 	import { BarChart } from './charts/Bar';
 
 	interface Props {

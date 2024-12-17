@@ -1,5 +1,8 @@
+import { init } from '$lib/ch-engine';
 import type { PageLoad } from './$types';
 
 export const load = (async () => {
-	return { sources: [] };
+	await init();
+
+	return {};
 }) satisfies PageLoad;

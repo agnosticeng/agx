@@ -1,6 +1,6 @@
 <script lang="ts">
+	import type { CHResponse } from '$lib/ch-engine';
 	import { Table } from '$lib/components/Table';
-	import type { CHResponse } from '$lib/query';
 	import { untrack } from 'svelte';
 	import ChartContainer from './ChartContainer.svelte';
 
