@@ -6,6 +6,7 @@
 	import { SplitPane } from '$lib/components/SplitPane';
 	import WindowTitleBar from '$lib/components/WindowTitleBar.svelte';
 	import { set_app_context } from '$lib/context';
+	import { Database } from '$lib/database';
 	import type { PageData } from './$types';
 
 	let response = $state.raw<CHResponse>();
@@ -22,6 +23,7 @@
 	}
 
 	const sources = new Sources();
+	const database = new Database();
 
 	set_app_context({ sources });
 </script>
