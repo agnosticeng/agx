@@ -3,6 +3,7 @@
 mod chdb;
 mod clickhouse;
 mod commands;
+mod db;
 
 use std::borrow::Cow;
 
@@ -11,6 +12,7 @@ use chdb::{
     format,
     session::{Session, SessionBuilder},
 };
+use db::{get_migrations, DB_PATH};
 use std::sync::Mutex;
 use tauri::Manager;
 
@@ -20,6 +22,11 @@ struct AppState {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations(DB_PATH, get_migrations())
+                .build(),
+        )
         .plugin(tauri_plugin_context_menu::init())
         .setup(|app| {
             let working_dir = app.path_resolver().app_local_data_dir().unwrap();

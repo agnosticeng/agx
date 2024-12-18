@@ -56,5 +56,10 @@
         "libchdb.so"
       ]
     }
+  },
+  "plugins": {
+    "sql": {
+      "preload": ["sqlite:database.db"]
+    }
   }
 }
