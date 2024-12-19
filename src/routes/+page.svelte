@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { exec, Sources, type CHResponse } from '$lib/ch-engine';
 	import { Editor, sources_to_schema } from '$lib/components/Editor';
+	import { QueryHistory } from '$lib/components/History';
 	import Result from '$lib/components/Result.svelte';
 	import SideBar from '$lib/components/SideBar.svelte';
 	import { SplitPane } from '$lib/components/SplitPane';
@@ -20,14 +21,21 @@
 		if (loading) return;
 		loading = true;
 		response = await exec(query).finally(() => (loading = false));
+		if (response) await history.push({ content: query, response });
 	}
 
 	const sources = new Sources();
 	const database = new Database();
+	const history = new QueryHistory(database, {
+		onselect: (entry) => {
+			query = entry.content;
+			response = entry.response;
+		}
+	});
 
 	// @ts-ignore
 	window.database = database;
-	set_app_context({ sources });
+	set_app_context({ sources, history });
 </script>
 
 <WindowTitleBar>

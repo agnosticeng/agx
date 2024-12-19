@@ -3,19 +3,24 @@ import { Migrator } from './Migrator.svelte';
 import { migrations } from './migrations';
 
 export class SQLiteDatabase {
-	#ready = $state(false);
+	#opened = $state(false);
 	#db?: Database;
+	#migrator: Migrator;
+
+	get opened() {
+		return this.#opened;
+	}
 
 	get ready() {
-		return this.#ready;
+		return this.#migrator.done;
 	}
 
 	constructor() {
 		this.#initialize()
-			.then(() => (this.#ready = true))
+			.then(() => (this.#opened = true))
 			.catch((e) => console.error('Error during SQLiteDatabase initialization', e));
 
-		new Migrator(this, migrations);
+		this.#migrator = new Migrator(this, migrations);
 	}
 
 	async #initialize() {
@@ -24,7 +29,7 @@ export class SQLiteDatabase {
 	}
 
 	async exec(sql: string, bind?: BindingSpec) {
-		if (!this.#ready) throw new Error('Must be initialized before exec');
+		if (!this.#opened) throw new Error('Must be initialized before exec');
 		return this.#db!.exec(sql, { bind, rowMode: 'object', returnValue: 'resultRows' });
 	}
 }

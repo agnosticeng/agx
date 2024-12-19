@@ -56,21 +56,27 @@ type Executor = <Cmd extends keyof CommandArgsMapper>(
 
 export class SQLiteDatabase implements SQLiteDB {
 	#executor?: Executor;
+	#migrator: Migrator;
 	#dbId?: string;
 
-	#ready = $state(false);
+	#opened = $state(false);
 
 	constructor() {
 		this.#initialize()
-			.then(() => (this.#ready = true))
+			.then(() => (this.#opened = true))
 			.catch((err) => {
 				console.error('something went wrong at database initialization', err);
 			});
-		new Migrator(this, migrations);
+
+		this.#migrator = new Migrator(this, migrations);
+	}
+
+	get opened() {
+		return this.#opened;
 	}
 
 	get ready() {
-		return this.#ready;
+		return this.#migrator.done;
 	}
 
 	async #initialize() {

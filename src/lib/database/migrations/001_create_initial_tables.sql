@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS history (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-    contents TEXT NOT NULL,
-    response JSON NOT NULL,
+    content TEXT NOT NULL,
+    response JSON,
     query_id INTEGER,
     query_hash TEXT NOT NULL,
     stats_execution_time INTEGER NOT NULL,
@@ -13,7 +13,7 @@ CREATE INDEX IF NOT EXISTS idx_history_query_hash
 ON history (query_hash);
 
 CREATE TABLE IF NOT EXISTS queries (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     display_name TEXT NOT NULL,
     contents TEXT NOT NULL,
     chart_config JSON,
@@ -27,5 +27,5 @@ FOR EACH ROW
 BEGIN
     UPDATE queries
     SET updated_at = datetime('now')
-    WHERE ID = OLD.ID;
+    WHERE id = OLD.id;
 END;

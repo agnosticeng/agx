@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS migrations (
 export class Migrator {
 	#db: SQLiteDB;
 	#migrations: Migration[];
+	#done = $state(false);
 
 	constructor(db: SQLiteDB, migrations: Migration[]) {
 		this.#db = db;
@@ -27,7 +28,7 @@ export class Migrator {
 		this.#migrations = migrations.toSorted((a, b) => a.version - b.version);
 
 		$effect(() => {
-			if (this.#db.ready)
+			if (this.#db.opened)
 				this.#create_migrations_table()
 					.then(() => this.#execute_migrations())
 					.catch((err) => {
@@ -38,6 +39,10 @@ export class Migrator {
 
 	get db() {
 		return this.#db;
+	}
+
+	get done() {
+		return this.#done;
 	}
 
 	async #create_migrations_table() {
@@ -53,6 +58,8 @@ export class Migrator {
 		for (const migration of migrations) await this.#db.exec(migration.content);
 
 		if (migrations.length) await this.#update_migration_version(migrations[migrations.length - 1]);
+
+		this.#done = true;
 	}
 
 	async get_version(): Promise<number | undefined> {
