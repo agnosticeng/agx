@@ -21,10 +21,10 @@
 		"@codemirror/state": "^6.4.1",
 		"@codemirror/view": "^6.35.0",
 		"@lezer/highlight": "^1.2.1",
+		"@sqlite.org/sqlite-wasm": "^3.47.2-build1",
 		"@tauri-apps/api": "^2.1.1",
 		"d3": "^7.9.0",
-		"normalize.css": "^8.0.1",
-		"tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#v1"
+		"normalize.css": "^8.0.1"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3.0.6",
