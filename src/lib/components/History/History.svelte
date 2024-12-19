@@ -2,6 +2,7 @@
 	import { highlight_code_html } from '$lib/components/Editor';
 	import { get_app_context } from '$lib/context';
 	import { format_date } from '$lib/utils/date';
+	import { handleKeydown } from './arrow_navigation';
 
 	const { history } = get_app_context();
 
@@ -16,7 +17,7 @@
 	}
 </script>
 
-<ol role="menu">
+<ol onkeydown={handleKeydown} role="menu">
 	{#each Object.entries(sections) as [section, entries]}
 		{#if entries}
 			<li>
