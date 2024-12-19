@@ -6,6 +6,7 @@ import {
 } from '@sqlite.org/sqlite-wasm';
 import { Migrator } from './Migrator.svelte';
 import { migrations } from './migrations';
+import type { SQLiteDB } from './types';
 
 declare module '@sqlite.org/sqlite-wasm' {
 	export const sqlite3Worker1Promiser: (params: { onready: () => void }) => Executor;
@@ -53,7 +54,7 @@ type Executor = <Cmd extends keyof CommandArgsMapper>(
 	args: CommandArgsMapper[Cmd]
 ) => Promise<CommandResponseMapper[Cmd]>;
 
-export class SQLiteDatabase {
+export class SQLiteDatabase implements SQLiteDB {
 	#executor?: Executor;
 	#dbId?: string;
 
@@ -84,8 +85,10 @@ export class SQLiteDatabase {
 
 	async #open() {
 		if (!this.#executor) throw new Error('tried to open before initialized worker');
-		const response = await this.#executor('open', { vfs: 'opfs', filename: 'file:database.db' });
-		this.#dbId = response.dbId;
+		try {
+			const response = await this.#executor('open', { vfs: 'opfs', filename: 'file:database.db' });
+			this.#dbId = response.dbId;
+		} catch (err) {}
 	}
 
 	async exec(sql: string, bind?: BindingSpec) {

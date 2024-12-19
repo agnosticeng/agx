@@ -1,4 +1,4 @@
-import type { SQLiteDatabase } from './SQLiteDatabase.svelte';
+import type { SQLiteDB } from './types';
 
 export interface Migration {
 	name: string;
@@ -15,10 +15,10 @@ CREATE TABLE IF NOT EXISTS migrations (
 )`;
 
 export class Migrator {
-	#db: SQLiteDatabase;
+	#db: SQLiteDB;
 	#migrations: Migration[];
 
-	constructor(db: SQLiteDatabase, migrations: Migration[]) {
+	constructor(db: SQLiteDB, migrations: Migration[]) {
 		this.#db = db;
 
 		if (!is_uniq(migrations, (m) => m.version))
@@ -61,11 +61,10 @@ export class Migrator {
 	}
 
 	async #update_migration_version(migration: Migration) {
-		await this.#db.exec('INSERT INTO migrations (name, version, content) VALUES ($1, $2, $3)', [
-			migration.name,
-			migration.version,
-			migration.content
-		]);
+		await this.#db.exec(
+			'DELETE FROM migrations; INSERT INTO migrations (name, version, content) VALUES ($1, $2, $3)',
+			[migration.name, migration.version, migration.content]
+		);
 	}
 }
 

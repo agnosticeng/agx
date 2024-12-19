@@ -25,6 +25,8 @@
 	const sources = new Sources();
 	const database = new Database();
 
+	// @ts-ignore
+	window.database = database;
 	set_app_context({ sources });
 </script>
 

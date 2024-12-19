@@ -1,1 +1,1 @@
-export { SQLiteDatabase as Database } from './SQLiteDatabase.svelte';
+export { SQLiteDatabase as Database } from './SQLiteMemoryDatabase.svelte';
