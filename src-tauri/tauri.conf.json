@@ -1,48 +1,50 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "build": {
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
-    "beforeBundleCommand": "sh src-tauri/fix_dylib.sh",
-    "frontendDist": "../build",
-    "devUrl": "http://localhost:1420"
-  },
-  "bundle": {
-    "macOS": {
-      "hardenedRuntime": true,
-      "minimumSystemVersion": "10.13"
-    },
-    "active": true,
-    "targets": "all",
-    "resources": [
-      "libchdb.so"
-    ],
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
-  },
-  "productName": "agx",
-  "mainBinaryName": "agx",
-  "version": "0.1.0",
-  "identifier": "com.agx.app",
-  "plugins": {},
-  "app": {
-    "security": {
-      "csp": null
-    },
-    "windows": [
-      {
-        "title": "agx",
-        "width": 1024,
-        "height": 768,
-        "theme": "Dark",
-        "titleBarStyle": "Overlay",
-        "useHttpsScheme": true
-      }
-    ]
-  }
+	"$schema": "https://schema.tauri.app/config/2",
+	"build": {
+		"beforeDevCommand": "npm run dev",
+		"beforeBuildCommand": "npm run build",
+		"beforeBundleCommand": "sh src-tauri/fix_dylib.sh",
+		"frontendDist": "../build",
+		"devUrl": "http://localhost:1420"
+	},
+	"bundle": {
+		"macOS": {
+			"hardenedRuntime": true,
+			"minimumSystemVersion": "10.13"
+		},
+		"active": true,
+		"targets": "all",
+		"resources": ["libchdb.so"],
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		]
+	},
+	"productName": "agx",
+	"mainBinaryName": "agx",
+	"version": "0.1.0",
+	"identifier": "com.agx.app",
+	"plugins": {},
+	"app": {
+		"security": {
+			"csp": null,
+			"headers": {
+				"Cross-Origin-Embedder-Policy": "require-corp",
+				"Cross-Origin-Opener-Policy": "same-origin"
+			}
+		},
+		"windows": [
+			{
+				"title": "agx",
+				"width": 1024,
+				"height": 768,
+				"theme": "Dark",
+				"titleBarStyle": "Overlay",
+				"useHttpsScheme": true
+			}
+		]
+	}
 }
