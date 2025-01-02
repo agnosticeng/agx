@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { highlight_code } from '$lib/components/Editor';
+	import { get_app_context } from '$lib/context';
 	import { format_date } from '$lib/utils/date';
-	import { entries } from './data.mock';
 	import { handleKeydown } from './keyboard_navigation';
 
+	const { history, set_query } = get_app_context();
+
 	const sections = $derived(
-		Object.groupBy(entries, (entry) => format_date(new Date(entry.timestamp), "dd MMM 'yy"))
+		Object.groupBy(history.entries, (entry) => format_date(new Date(entry.timestamp), "dd MMM 'yy"))
 	);
 
 	function cut_off_for_preview(code: string) {
@@ -29,8 +31,8 @@
 									e.preventDefault();
 								}}
 								role="menuitem"
-								onkeydown={(e) => e.key === 'Enter' && console.log(entry)}
-								onclick={(e) => e.detail >= 2 && console.log(entry)}
+								onkeydown={(e) => e.key === 'Enter' && set_query(entry.content)}
+								onclick={(e) => e.detail >= 2 && set_query(entry.content)}
 							>
 								<span class="time">{new Date(entry.timestamp).toLocaleTimeString('en-US')}</span>
 								{@html highlight_code(cut_off_for_preview(entry.content))}
