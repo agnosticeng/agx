@@ -15,7 +15,7 @@ export class MigrationManager {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    CREATE INDEX IF NOT EXISTS idx_migrations_hash ON migrations (hash);
+    CREATE INDEX IF NOT EXISTS idx_migrations_name ON migrations (name);
   `;
 
 	private initPromise: Promise<void>;
