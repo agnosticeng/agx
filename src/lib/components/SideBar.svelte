@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Datasets from './Datasets/Datasets.svelte';
+	import History from './History/History.svelte';
 
 	type Tab = 'sources' | 'queries' | 'history';
 
@@ -17,6 +18,9 @@
 	</nav>
 	{#if tab === 'sources'}
 		<Datasets />
+	{/if}
+	{#if tab === 'history'}
+		<History />
 	{/if}
 </section>
 
