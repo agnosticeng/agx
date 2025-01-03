@@ -1,7 +1,6 @@
 import { SQLite } from '@agnosticeng/sqlite';
 import type { BindingSpec, FlexibleString } from '@sqlite.org/sqlite-wasm';
 import { SnapshotManager } from './SnapshotManager';
-import { MigrationManager, migrations } from './migrations';
 
 export class Database {
 	#db = new SQLite();
@@ -14,17 +13,10 @@ export class Database {
 	}
 
 	async #init() {
-		await this.#load();
-	}
-
-	async #load() {
 		const storedData = await this.#snapshot_manager.get();
 		if (storedData) {
 			await this.#db.load_db(storedData);
 		}
-
-		const migrator = new MigrationManager(this.#db);
-		await migrator.migrate(migrations);
 	}
 
 	async exec(query: FlexibleString, bind?: BindingSpec) {
