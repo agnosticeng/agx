@@ -1,16 +1,15 @@
 import { SQLite } from '@agnosticeng/sqlite';
 import type { BindingSpec, FlexibleString } from '@sqlite.org/sqlite-wasm';
-import * as IndexedDBWrapper from './IndexedDBWrapper';
+import { SnapshotManager } from './SnapshotManager';
 import { MigrationManager, migrations } from './migrations';
 
 export class Database {
-	#db: SQLite;
+	#db = new SQLite();
+	#snapshot_manager = new SnapshotManager();
 
 	#init_promise: Promise<void>;
 
 	constructor() {
-		this.#db = new SQLite();
-
 		this.#init_promise = this.#init();
 	}
 
@@ -19,7 +18,7 @@ export class Database {
 	}
 
 	async #load() {
-		const storedData = await IndexedDBWrapper.getData();
+		const storedData = await this.#snapshot_manager.get();
 		if (storedData) {
 			await this.#db.load_db(storedData);
 		}
@@ -39,6 +38,6 @@ export class Database {
 
 	async #save() {
 		const data = await this.#db.export_db();
-		await IndexedDBWrapper.setData(data);
+		await this.#snapshot_manager.set(data);
 	}
 }
