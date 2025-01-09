@@ -9,7 +9,7 @@ import {
 } from '@codemirror/commands';
 import { bracketMatching, indentUnit } from '@codemirror/language';
 import { EditorState } from '@codemirror/state';
-import { drawSelection, keymap, lineNumbers, scrollPastEnd } from '@codemirror/view';
+import { drawSelection, EditorView, keymap, lineNumbers, scrollPastEnd } from '@codemirror/view';
 import { theme } from './theme';
 
 export const default_extensions = [
@@ -23,7 +23,8 @@ export const default_extensions = [
 	indentUnit.of('\t'),
 	theme,
 	EditorState.allowMultipleSelections.of(true),
-	drawSelection()
+	drawSelection(),
+	EditorView.darkTheme.of(true)
 ];
 
 export const default_keymaps = keymap.of([

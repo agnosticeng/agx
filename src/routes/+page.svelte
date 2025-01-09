@@ -3,6 +3,8 @@
 	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
 	import { Editor } from '$lib/components/Editor';
+	import { Workspace } from '$lib/components/Editor/workspace.svelte';
+	import FileTabs from '$lib/components/FileTabs.svelte';
 	import { SaveQueryModal } from '$lib/components/Queries';
 	import Result from '$lib/components/Result.svelte';
 	import SideBar from '$lib/components/SideBar.svelte';
@@ -18,23 +20,22 @@
 	import type { ComponentProps } from 'svelte';
 
 	let response = $state.raw<OLAPResponse>();
-
-	let query = $state('');
 	let loading = $state(false);
 
 	async function handleExec() {
+		const query = workspace.current.contents;
 		if (loading || !query) {
 			return;
 		}
 
 		loading = true;
-		const query_to_execute = query;
-		response = await engine.exec(query_to_execute).finally(() => (loading = false));
+
+		response = await engine.exec(query).finally(() => (loading = false));
 
 		const last = await history_repository.getLast();
 
-		if (response && last?.content !== query_to_execute) {
-			await addHistoryEntry(query_to_execute);
+		if (response && last?.content !== query) {
+			await addHistoryEntry(query);
 		}
 	}
 
@@ -64,7 +65,6 @@
 	}
 
 	function handleHistoryClick(entry: HistoryEntry) {
-		query = entry.content;
 		if (is_mobile) open_drawer = false;
 	}
 
@@ -76,17 +76,21 @@
 
 	function handleKeyDown(event: KeyboardEvent) {
 		if (event.key === 's' && event.metaKey) {
-			if (query) {
+			if (workspace.current.contents) {
 				event.preventDefault();
 				save_query_modal?.show();
 			}
+		}
+
+		if (event.key === 'Enter' && event.metaKey) {
+			handleExec();
 		}
 	}
 
 	async function handleCreateQuery({
 		name
 	}: Parameters<NonNullable<ComponentProps<typeof SaveQueryModal>['onCreate']>>['0']) {
-		const q = await query_repository.create(name, query);
+		const q = await query_repository.create(name, workspace.current.contents);
 		queries = queries.concat(q);
 	}
 
@@ -96,9 +100,15 @@
 		queries = queries.slice(0, index).concat(queries.slice(index + 1));
 	}
 
-	function handleQueryOpen(_query: Query) {
-		query = _query.sql;
+	function handleQueryOpen(query: Query) {
+		const workspace_id = `query_${query.id}`;
+		const opened = workspace.files.find((f) => f.id === workspace_id);
+		if (opened) workspace.select(`query_${query.id}`);
+		else workspace.add({ id: workspace_id, name: query.name, contents: query.sql });
+
 		if (is_mobile) open_drawer = false;
+
+		workspace.focus();
 	}
 
 	async function handleQueryRename(query: Query) {
@@ -121,6 +131,10 @@
 
 	$effect(() => {
 		if (!is_mobile) open_drawer = false;
+	});
+
+	const workspace = new Workspace([{ id: 'Untitled', name: 'Untitled', contents: '' }], {
+		placeholder: 'Enter query...'
 	});
 </script>
 
@@ -152,6 +166,7 @@
 		pos={is_mobile ? '0px' : '242px'}
 		min={is_mobile ? '0px' : '242px'}
 		max="40%"
+		--color="hsl(0deg 0% 12%)"
 	>
 		{#snippet a()}
 			{#if !is_mobile}
@@ -169,16 +184,20 @@
 										<Bars3 size="12" />
 									</button>
 								{/if}
+								<FileTabs {workspace} />
 							</div>
 							<div class="right">
-								<button onclick={() => save_query_modal?.show()} disabled={!query}>
+								<button
+									onclick={() => save_query_modal?.show()}
+									disabled={!workspace.current.contents}
+								>
 									<Save size="12" />
 								</button>
 								<button onclick={handleExec} disabled={loading}><Play size="12" /></button>
 							</div>
 						</nav>
 						<div>
-							<Editor bind:value={query} onExec={handleExec} {tables} />
+							<Editor {workspace} {tables} />
 						</div>
 					</div>
 				{/snippet}
@@ -195,11 +214,27 @@
 <style>
 	.Tabs {
 		height: 28px;
+		position: relative;
 		display: flex;
-		border-bottom: 1px solid hsl(0deg 0% 20%);
+		gap: 0.5rem;
+		align-items: center;
+		padding: 0 1rem 0 0;
+
+		&::before {
+			content: '';
+			position: absolute;
+			width: 100%;
+			height: 1px;
+			bottom: 0px;
+			left: 0;
+			background-color: hsl(0deg 0% 20%);
+			z-index: 1;
+		}
 
 		& > .left {
+			height: 100%;
 			flex: 1;
+			overflow-x: hidden;
 		}
 
 		& > .right {
