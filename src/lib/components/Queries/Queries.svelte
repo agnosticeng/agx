@@ -139,7 +139,7 @@
 					-webkit-appearance: none;
 					width: 100%;
 					height: 18px;
-					font-weight: 600;
+					font-weight: 500;
 					outline: none;
 					margin: 0;
 					padding: 0;
@@ -150,7 +150,7 @@
 			& > span.name {
 				display: block;
 				height: 18px;
-				font-weight: 600;
+				font-weight: 500;
 				padding: 3px 0;
 				line-height: 1.15;
 				white-space: nowrap;

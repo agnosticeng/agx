@@ -72,7 +72,7 @@
 
 	.content {
 		height: 18px;
-		font-weight: 600;
+		font-weight: 500;
 		padding: 3px 0;
 		line-height: 1.15;
 

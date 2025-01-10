@@ -1,3 +1,4 @@
+import { insert, remove, replace, uniq } from '$lib/utils/array';
 import type { Completion } from '@codemirror/autocomplete';
 import { sql } from '@codemirror/lang-sql';
 import { Compartment, EditorState } from '@codemirror/state';
@@ -112,9 +113,7 @@ export class Workspace {
 		if (selected) {
 			const file = files.find((file) => file.id === selected);
 
-			if (!file) {
-				throw new Error(`Invalid selection ${selected}`);
-			}
+			if (!file) throw new Error(`Invalid selection ${selected}`);
 
 			this.#select(file);
 		} else {
@@ -155,6 +154,13 @@ export class Workspace {
 		this.#files = replace(this.#files, index, next);
 
 		if (was_current) this.#select(next);
+	}
+
+	update(file: File) {
+		this.#update_file(file);
+
+		const state = this.#states.get(file.id);
+		if (state) this.#update_state(file, state);
 	}
 
 	select(id: File['id']) {
@@ -253,31 +259,4 @@ export class Workspace {
 			}
 		}
 	}
-}
-
-function uniq<T, U = T>(arr: T[], predicate: (item: T, index: number, arr: T[]) => U) {
-	const set = new Set<U>();
-
-	for (let index = 0; index < arr.length; index += 1) {
-		const key = predicate(arr[index], index, arr);
-		if (set.has(key)) return false;
-		set.add(key);
-	}
-
-	return true;
-}
-
-function replace<T>(arr: T[], at: number, by: T) {
-	return arr
-		.slice(0, at)
-		.concat(by)
-		.concat(arr.slice(at + 1));
-}
-
-function remove<T>(arr: T[], at: number) {
-	return arr.slice(0, at).concat(arr.slice(at + 1));
-}
-
-function insert<T>(arr: T[], item: T, at = arr.length) {
-	return arr.slice(0, at).concat(item).concat(arr.slice(at));
 }

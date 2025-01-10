@@ -94,6 +94,7 @@
 	}
 
 	h3 {
+		font-weight: 500;
 		margin: 0;
 	}
 

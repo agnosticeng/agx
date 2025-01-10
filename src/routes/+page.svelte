@@ -2,8 +2,7 @@
 	import { ContextMenuState } from '$lib/components/ContextMenu';
 	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
-	import { Editor } from '$lib/components/Editor';
-	import { Workspace } from '$lib/components/Editor/workspace.svelte';
+	import { Editor, Workspace, type File } from '$lib/components/Editor';
 	import FileTabs from '$lib/components/FileTabs.svelte';
 	import { SaveQueryModal } from '$lib/components/Queries';
 	import Result from '$lib/components/Result.svelte';
@@ -16,6 +15,7 @@
 	import { engine, type OLAPResponse } from '$lib/olap-engine';
 	import { history_repository, type HistoryEntry } from '$lib/repositories/history';
 	import { query_repository, type Query } from '$lib/repositories/queries';
+	import { remove, replace } from '$lib/utils/array';
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import type { ComponentProps } from 'svelte';
 
@@ -65,6 +65,10 @@
 	}
 
 	function handleHistoryClick(entry: HistoryEntry) {
+		if (!workspace.current.contents)
+			workspace.update({ ...workspace.current, contents: entry.content });
+		else workspace.add({ id: crypto.randomUUID(), name: 'Untitled', contents: entry.content });
+
 		if (is_mobile) open_drawer = false;
 	}
 
@@ -90,20 +94,30 @@
 	async function handleCreateQuery({
 		name
 	}: Parameters<NonNullable<ComponentProps<typeof SaveQueryModal>['onCreate']>>['0']) {
-		const q = await query_repository.create(name, workspace.current.contents);
-		queries = queries.concat(q);
+		const query = await query_repository.create(name, workspace.current.contents);
+		queries = queries.concat(query);
+		workspace.replace(workspace.current, {
+			id: `query_${query.id}`,
+			name: query.name,
+			contents: query.sql
+		});
 	}
 
 	async function handleDeleteQuery(query: Query) {
 		await query_repository.delete(query.id);
-		const index = queries.indexOf(query);
-		queries = queries.slice(0, index).concat(queries.slice(index + 1));
+		queries = remove(queries, queries.indexOf(query));
 	}
 
 	function handleQueryOpen(query: Query) {
 		const workspace_id = `query_${query.id}`;
 		const opened = workspace.files.find((f) => f.id === workspace_id);
 		if (opened) workspace.select(`query_${query.id}`);
+		else if (!workspace.current.contents)
+			workspace.replace(workspace.current, {
+				id: workspace_id,
+				name: query.name,
+				contents: query.sql
+			});
 		else workspace.add({ id: workspace_id, name: query.name, contents: query.sql });
 
 		if (is_mobile) open_drawer = false;
@@ -114,12 +128,28 @@
 	async function handleQueryRename(query: Query) {
 		const updated = await query_repository.update(query);
 		const index = queries.findIndex((query) => query.id === updated.id);
-		if (index !== -1) {
-			queries = queries
-				.slice(0, index)
-				.concat(updated)
-				.concat(queries.slice(index + 1));
+		if (index !== -1) queries = replace(queries, index, updated);
+
+		const workspace_id = `query_${updated.id}`;
+		const file = workspace.files.find((f) => f.id === workspace_id);
+		if (file) workspace.rename(file, updated.name);
+	}
+
+	async function handleSaveQuery() {
+		if (workspace.current.id.startsWith('query_')) {
+			const id = parseInt(workspace.current.id.replace(/^query_/, ''), 10);
+			const index = queries.findIndex((query) => query.id === id);
+			if (index !== -1) {
+				const updated = await query_repository.update({
+					...queries[index],
+					sql: workspace.current.contents
+				});
+				queries = replace(queries, index, updated);
+				return;
+			}
 		}
+
+		save_query_modal?.show();
 	}
 
 	const context_menu = new ContextMenuState();
@@ -133,9 +163,13 @@
 		if (!is_mobile) open_drawer = false;
 	});
 
-	const workspace = new Workspace([{ id: 'Untitled', name: 'Untitled', contents: '' }], {
-		placeholder: 'Enter query...'
-	});
+	const dummy: File = {
+		id: crypto.randomUUID(),
+		name: 'Untitled',
+		contents: ''
+	};
+
+	const workspace = new Workspace([dummy], { placeholder: 'Enter query...' });
 </script>
 
 <svelte:window onkeydown={handleKeyDown} bind:innerWidth={screen_width} />
@@ -187,10 +221,7 @@
 								<FileTabs {workspace} />
 							</div>
 							<div class="right">
-								<button
-									onclick={() => save_query_modal?.show()}
-									disabled={!workspace.current.contents}
-								>
+								<button onclick={handleSaveQuery} disabled={!workspace.current.contents}>
 									<Save size="12" />
 								</button>
 								<button onclick={handleExec} disabled={loading}><Play size="12" /></button>
