@@ -1,6 +1,6 @@
 import { CHDBEngine } from './engine-chdb';
 import { RemoteEngine } from './engine-remote';
-import type { ILogger } from './Logger';
+import type { IEventEmitter } from './EventEmitter';
 
 export type OLAPResponse = {
 	meta: Array<ColumnDescriptor>;
@@ -24,7 +24,9 @@ export interface Table {
 	columns: ColumnDescriptor[];
 }
 
-export interface OLAPEngine extends ILogger {
+export type Events = 'error' | 'success';
+
+export interface OLAPEngine extends IEventEmitter<Events> {
 	init(): Promise<void>;
 	exec(query: string): Promise<OLAPResponse | undefined>;
 	getSchema(): Promise<Table[]>;

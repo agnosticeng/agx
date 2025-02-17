@@ -1,10 +1,10 @@
-import type { OLAPEngine, OLAPResponse, Table } from './index';
-import { Logger } from './Logger';
+import { EventEmitter } from './EventEmitter';
+import type { Events, OLAPEngine, OLAPResponse, Table } from './index';
 
 import CLICKHOUSE_GET_SCHEMA from './queries/clickhouse_get_schema.sql?raw';
 import CLICKHOUSE_GET_UDFS from './queries/clickhouse_get_udfs.sql?raw';
 
-export class RemoteEngine extends Logger implements OLAPEngine {
+export class RemoteEngine extends EventEmitter<Events> implements OLAPEngine {
 	async init() {}
 
 	async exec(query: string) {
@@ -22,10 +22,12 @@ export class RemoteEngine extends Logger implements OLAPEngine {
 
 			if ('exception' in data) throw new Error(data.exception);
 
+			this.emit('success', query, data);
+
 			return data;
 		} catch (e) {
 			console.error(e);
-			this.log('error', e);
+			this.emit('error', e);
 		}
 	}
 
