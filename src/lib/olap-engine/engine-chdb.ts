@@ -11,30 +11,30 @@ export class CHDBEngine extends EventEmitter<Events> implements OLAPEngine {
 		await this.exec(CLICKHOUSE_INIT_DB);
 	}
 
-	async exec(query: string) {
+	async exec(query: string, _emit = true) {
 		try {
 			const r: string = await invoke('query', { query });
 			if (!r) return;
 			const data = JSON.parse(r) as OLAPResponse;
 
-			this.emit('success', query, data);
+			if (_emit) this.emit('success', query, data);
 
 			return data;
 		} catch (e) {
 			if (typeof e === 'string') e = new Error(e);
 			console.error(e);
-			this.emit('error', e);
+			if (_emit) this.emit('error', e);
 		}
 	}
 
 	async getSchema() {
-		const response = await this.exec(CLICKHOUSE_GET_SCHEMA);
+		const response = await this.exec(CLICKHOUSE_GET_SCHEMA, false);
 		if (!response) return [];
 		return response.data as Table[];
 	}
 
 	async getUDFs() {
-		const response = await this.exec(CLICKHOUSE_GET_UDFS);
+		const response = await this.exec(CLICKHOUSE_GET_UDFS, false);
 		if (!response) return [];
 
 		return response.data.map((row) => row.name as string);

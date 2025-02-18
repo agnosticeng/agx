@@ -7,7 +7,7 @@ import CLICKHOUSE_GET_UDFS from './queries/clickhouse_get_udfs.sql?raw';
 export class RemoteEngine extends EventEmitter<Events> implements OLAPEngine {
 	async init() {}
 
-	async exec(query: string) {
+	async exec(query: string, _emit = true) {
 		try {
 			const proxy =
 				new URLSearchParams(window.location.search).get('proxy') ?? 'https://proxy.agx.app/query';
@@ -22,23 +22,23 @@ export class RemoteEngine extends EventEmitter<Events> implements OLAPEngine {
 
 			if ('exception' in data) throw new Error(data.exception);
 
-			this.emit('success', query, data);
+			if (_emit) this.emit('success', query, data);
 
 			return data;
 		} catch (e) {
 			console.error(e);
-			this.emit('error', e);
+			if (_emit) this.emit('error', e);
 		}
 	}
 
 	async getSchema() {
-		const response = await this.exec(CLICKHOUSE_GET_SCHEMA);
+		const response = await this.exec(CLICKHOUSE_GET_SCHEMA, false);
 		if (!response) return [];
 		return response.data as Table[];
 	}
 
 	async getUDFs() {
-		const response = await this.exec(CLICKHOUSE_GET_UDFS);
+		const response = await this.exec(CLICKHOUSE_GET_UDFS, false);
 		if (!response) return [];
 
 		return response.data.map((row) => row.name as string);

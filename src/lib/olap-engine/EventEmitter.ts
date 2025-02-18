@@ -3,7 +3,7 @@ type Callback = (...param: any[]) => void;
 type OptionalRecord<K extends keyof any, T> = { [P in K]?: T };
 
 export interface IEventEmitter<Events extends string> {
-	on(event: Events, fn: Callback): () => void;
+	on(event: Events, fn: Callback): () => any;
 	emit(event: Events, param: any): void;
 }
 
