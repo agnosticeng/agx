@@ -3,6 +3,7 @@
 	import { ContextMenuState } from '$lib/components/ContextMenu';
 	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
+	import Editor from '$lib/components/Editor/Editor.svelte';
 	import { SaveQueryModal } from '$lib/components/Queries';
 	import Result from '$lib/components/Result.svelte';
 	import SideBar from '$lib/components/SideBar.svelte';
@@ -19,11 +20,11 @@
 	import Save from '$lib/icons/Save.svelte';
 	import type { Table } from '$lib/olap-engine';
 	import { engine, type OLAPResponse } from '$lib/olap-engine';
+	import { fileQuery, onDropFiles } from '$lib/on-drop-files';
 	import { PanelState } from '$lib/PanelState.svelte';
 	import { historyRepository, type HistoryEntry } from '$lib/repositories/history';
 	import { queryRepository, type Query } from '$lib/repositories/queries';
 	import { tabRepository, type Tab } from '$lib/repositories/tabs';
-	import Editor from '$lib/components/Editor/Editor.svelte';
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import debounce from 'p-debounce';
 	import { format } from 'sql-formatter';
@@ -72,6 +73,18 @@
 			console.error(e);
 		}
 	}
+
+	onDropFiles((paths) => {
+		const path = paths[0];
+		if (path) {
+			const content = fileQuery(path);
+			if (currentTab.content) {
+				selectedTabIndex = tabs.push({ id: crypto.randomUUID(), content, name: 'Untitled' }) - 1;
+			} else {
+				currentTab.content = content;
+			}
+		}
+	});
 
 	function handleHistoryOpen(entry: HistoryEntry) {
 		if (currentTab.content) {
