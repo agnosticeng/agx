@@ -3,6 +3,7 @@
 	import { ContextMenuState } from '$lib/components/ContextMenu';
 	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
+	import Editor from '$lib/components/Editor/Editor.svelte';
 	import { SaveQueryModal } from '$lib/components/Queries';
 	import Result from '$lib/components/Result.svelte';
 	import SideBar from '$lib/components/SideBar.svelte';
@@ -23,7 +24,6 @@
 	import { historyRepository, type HistoryEntry } from '$lib/repositories/history';
 	import { queryRepository, type Query } from '$lib/repositories/queries';
 	import { tabRepository, type Tab } from '$lib/repositories/tabs';
-	import Editor from '$lib/components/Editor/Editor.svelte';
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import debounce from 'p-debounce';
 	import { format } from 'sql-formatter';
@@ -35,24 +35,15 @@
 
 	async function handleExec() {
 		const query = currentTab.content;
-		if (loading || !query) {
-			return;
-		}
+		if (loading || !query) return;
 
 		loading = true;
 		counter?.start();
-		response = await engine.exec(query).finally(() => {
+		try {
+			response = await engine.exec(query);
+		} finally {
 			loading = false;
 			counter?.stop();
-		});
-
-		const last = await historyRepository.getLast();
-
-		if (response && last?.content !== query) await addHistoryEntry(query);
-
-		if (response) {
-			bottomPanel.open = true;
-			if (bottomPanelTab === 'logs') bottomPanelTab = 'data';
 		}
 	}
 
@@ -63,6 +54,22 @@
 	$effect(() => void engine.getSchema().then((t) => (tables = t)));
 	$effect(() => void historyRepository.getAll().then((entries) => (history = entries)));
 	$effect(() => void queryRepository.getAll().then((q) => (queries = q)));
+
+	engine.on('success', async (query: string) => {
+		if (typeof query !== 'string') return;
+		if (/CREATE/g.test(query)) tables = await engine.getSchema();
+	});
+
+	engine.on('success', async (query: string, response?: OLAPResponse) => {
+		const last = await historyRepository.getLast();
+
+		if (response && last?.content !== query) await addHistoryEntry(query);
+
+		if (response) {
+			bottomPanel.open = true;
+			if (bottomPanelTab === 'logs') bottomPanelTab = 'data';
+		}
+	});
 
 	async function addHistoryEntry(query: string) {
 		try {
