@@ -15,6 +15,7 @@
 	import { FileDropEventManager } from '$lib/FileDropEventManager';
 	import Bars3 from '$lib/icons/Bars3.svelte';
 	import Copy from '$lib/icons/Copy.svelte';
+	import GitHubIcon from '$lib/icons/GitHubIcon.svelte';
 	import MagicWand from '$lib/icons/MagicWand.svelte';
 	import PanelBottom from '$lib/icons/PanelBottom.svelte';
 	import PanelLeft from '$lib/icons/PanelLeft.svelte';
@@ -428,6 +429,15 @@ LIMIT 100;`;
 			{#if BUILD}
 				<span class="label">build-{BUILD}</span>
 			{/if}
+			<a
+				href="https://github.com/agnosticeng/agx"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="github-link"
+				title="Open on GitHub"
+			>
+				<GitHubIcon size="10" />
+			</a>
 			<button
 				class:active={bottomPanel.open}
 				onclick={() => (bottomPanel.open = !bottomPanel.open)}
@@ -567,6 +577,20 @@ LIMIT 100;`;
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
+		}
+
+		& > .github-link {
+			height: 100%;
+			aspect-ratio: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: inherit;
+
+			&:hover {
+				color: hsl(204deg 88% 65%);
+				background-color: hsl(0deg 0% 10%);
+			}
 		}
 
 		& > button {
