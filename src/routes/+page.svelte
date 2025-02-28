@@ -14,6 +14,7 @@
 	import { setAppContext } from '$lib/context';
 	import { FileDropEventManager } from '$lib/FileDropEventManager';
 	import Bars3 from '$lib/icons/Bars3.svelte';
+	import Bold from '$lib/icons/Bold.svelte';
 	import Copy from '$lib/icons/Copy.svelte';
 	import MagicWand from '$lib/icons/MagicWand.svelte';
 	import PanelBottom from '$lib/icons/PanelBottom.svelte';
@@ -27,6 +28,7 @@
 	import { historyRepository, type HistoryEntry } from '$lib/repositories/history';
 	import { queryRepository, type Query } from '$lib/repositories/queries';
 	import { tabRepository, type Tab } from '$lib/repositories/tabs';
+	import { IndexedDBCache } from '@agnosticeng/cache';
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import debounce from 'p-debounce';
 	import { format } from 'sql-formatter';
@@ -36,14 +38,31 @@
 	let loading = $state(false);
 	let counter = $state<ReturnType<typeof TimeCounter>>();
 
-	async function handleExec() {
+	const cache = new IndexedDBCache({ dbName: 'query-cache', storeName: 'response-data' });
+	let cached = $state(false);
+
+	async function handleExec(force = false) {
 		const query = currentTab.content;
 		if (loading || !query) return;
 
 		loading = true;
 		counter?.start();
 		try {
+			if (!force) {
+				const r = await cache.get(query);
+				if (r) {
+					cached = true;
+					response = r;
+					cached = true;
+					bottomPanel.open = true;
+					if (bottomPanelTab === 'logs') bottomPanelTab = 'data';
+					return;
+				}
+			}
+
 			response = await engine.exec(query);
+			cached = false;
+			await cache.set(query, response);
 		} finally {
 			loading = false;
 			counter?.stop();
@@ -390,8 +409,21 @@ LIMIT 100;`;
 									<button class="action" title="Save" onclick={handleSaveQuery} disabled={!canSave}>
 										<Save size="12" />
 									</button>
-									<button class="action" title="Run" onclick={handleExec} disabled={loading}>
+									<button
+										class="action"
+										title="Run"
+										onclick={() => handleExec()}
+										disabled={loading}
+									>
 										<Play size="12" />
+									</button>
+									<button
+										class="action"
+										title="Run without cache"
+										onclick={() => handleExec(true)}
+										disabled={loading}
+									>
+										<Bold size="12" />
 									</button>
 								</div>
 							</nav>
@@ -424,6 +456,9 @@ LIMIT 100;`;
 				<PanelLeft size="12" />
 			</button>
 			<div class="spacer"></div>
+			{#if cached}
+				<span>from cache</span>
+			{/if}
 			<TimeCounter bind:this={counter} />
 			{#if BUILD}
 				<span class="label">build-{BUILD}</span>
