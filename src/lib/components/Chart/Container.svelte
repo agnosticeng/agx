@@ -26,24 +26,24 @@
 		);
 
 		if (dateColumn && hasCandleColumns) {
-			settings.chartType = 'candle';
-			settings.xAxis.series = [dateColumn];
-			settings.yAxis.series = candleColumns;
+			settings.type = 'candle';
+			settings.x = dateColumn;
+			settings.y = candleColumns;
 			return;
 		}
 
 		if (dateColumn && otherColumns.length > 0) {
-			settings.chartType = 'line';
-			settings.xAxis.series = [dateColumn];
-			settings.yAxis.series = otherColumns;
+			settings.type = 'line';
+			settings.x = dateColumn;
+			settings.y = otherColumns;
 			return;
 		}
 	}
 
 	let settings = $state<ChartSettingsType>({
-		chartType: 'line',
-		xAxis: { series: [] },
-		yAxis: { series: [] }
+		type: 'line',
+		x: '',
+		y: []
 	});
 
 	$effect(() => {
@@ -53,7 +53,7 @@
 	});
 
 	$effect(() => {
-		if (settings.xAxis.series.length === 0 && settings.yAxis.series.length === 0) {
+		if (settings.x.length === 0 && settings.y.length === 0) {
 			setDefaultSettings();
 		}
 	});

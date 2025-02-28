@@ -18,19 +18,29 @@
 
 	const handleChartTypeChange = (event: Event) => {
 		const select = event.target as HTMLSelectElement;
-		settings.chartType = select.value as 'candle' | 'line';
+		settings.type = select.value as 'candle' | 'line' | 'bar';
+		if (settings.type !== 'bar') {
+			settings.z = undefined;
+		}
 	};
 
 	const handleXAxisChange = (event: Event) => {
 		const select = event.target as HTMLSelectElement;
-		const selectedOptions = Array.from(select.selectedOptions).map((option) => option.value);
-		settings.xAxis.series = selectedOptions;
+		const options = Array.from(select.options).map((o) => o.value);
+		settings.x = options[select.selectedIndex];
 	};
 
 	const handleYAxisChange = (event: Event) => {
 		const select = event.target as HTMLSelectElement;
 		const selectedOptions = Array.from(select.selectedOptions).map((option) => option.value);
-		settings.yAxis.series = selectedOptions;
+		settings.y = selectedOptions;
+	};
+
+	const handleZAxisChange = (event: Event) => {
+		const select = event.target as HTMLSelectElement;
+		const options = Array.from(select.options).map((o) => o.value);
+		settings.z = options[select.selectedIndex];
+		if (!settings.z) settings.z = undefined;
 	};
 </script>
 
@@ -39,14 +49,16 @@
 		<form>
 			<div class="setting">
 				<span>type</span>
-				<select multiple value={settings.chartType} onchange={handleChartTypeChange} size={2}>
+				<select multiple value={settings.type} onchange={handleChartTypeChange} size={3}>
 					<option value="line">line</option>
 					<option value="candle">candle</option>
+					<option value="bar">bar</option>
 				</select>
 			</div>
+
 			<div class="setting">
 				<span>x-axis</span>
-				<select multiple value={settings.xAxis.series} onchange={handleXAxisChange} size={4}>
+				<select value={settings.x} onchange={handleXAxisChange} size={columns.length}>
 					{#each columns as column}
 						<option value={column.name}>{column.name}</option>
 					{/each}
@@ -58,11 +70,28 @@
 				<div style="display: flex; gap: 5px;">
 					<select
 						multiple
-						value={settings.yAxis.series}
+						value={settings.y}
 						onchange={handleYAxisChange}
-						size={4}
-						disabled={settings.chartType === 'candle'}
+						size={columns.length}
+						disabled={settings.type === 'candle'}
 					>
+						{#each columns as column}
+							<option value={column.name}>{column.name}</option>
+						{/each}
+					</select>
+				</div>
+			</div>
+
+			<div class="setting">
+				<span>z-axis</span>
+				<div style="display: flex; gap: 5px;">
+					<select
+						value={settings.z}
+						onchange={handleZAxisChange}
+						size={columns.length + 1}
+						disabled={settings.type !== 'bar'}
+					>
+						<option value="">none</option>
 						{#each columns as column}
 							<option value={column.name}>{column.name}</option>
 						{/each}
@@ -94,7 +123,6 @@
 		position: absolute;
 		top: 10px;
 		right: 10px;
-		height: 170px;
 		width: 200px;
 		background: hsla(0, 0%, 5%, 0.8);
 		border: 1px solid hsl(0deg 0% 20%);
