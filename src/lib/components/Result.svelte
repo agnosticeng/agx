@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { Table } from '@agnosticeng/dv';
+	import { download } from '$lib/downloadResultset';
+	import Download from '$lib/icons/Download.svelte';
+	import Settings from '$lib/icons/Settings.svelte';
 	import Trash from '$lib/icons/Trash.svelte';
 	import type { OLAPResponse } from '$lib/olap-engine';
-	import Console, { type Log } from './Console.svelte';
-	import Settings from '$lib/icons/Settings.svelte';
+	import { Table } from '@agnosticeng/dv';
 	import Chart from './Chart/Container.svelte';
+	import Console, { type Log } from './Console.svelte';
 
 	interface Props {
 		response?: OLAPResponse;
@@ -22,13 +24,21 @@
 		<button class="tab" aria-current={tab === 'chart'} onclick={() => (tab = 'chart')}>Chart</button
 		>
 		<button class="tab" aria-current={tab === 'logs'} onclick={() => (tab = 'logs')}>Logs</button>
+		<div class="spacer"></div>
 		{#if tab === 'logs'}
-			<div class="spacer"></div>
 			<button class="action" onclick={() => onClearLogs?.()}><Trash size="12" /></button>
 		{/if}
 		{#if tab === 'chart'}
-			<div class="spacer"></div>
 			<button class="action" data-action="toggle-chart-settings"><Settings size="12" /></button>
+		{/if}
+		{#if tab === 'data'}
+			<button
+				class="action"
+				disabled={!response}
+				onclick={() => {
+					if (response) download(response);
+				}}><Download size="12" /></button
+			>
 		{/if}
 	</nav>
 	<div>
@@ -124,6 +134,10 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
+
+				&:disabled {
+					color: hsl(0deg 0% 50%);
+				}
 
 				&:is(:hover):not(:disabled) {
 					background-color: hsl(0deg 0% 10%);
