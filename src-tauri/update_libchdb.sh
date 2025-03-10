@@ -5,17 +5,22 @@ cd $(dirname "${BASH_SOURCE[0]}")
 # Get the newest release version
 LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/chdb-io/chdb/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
+echo "Latest version found: $LATEST_RELEASE"
+
+# Set ARCH to uname -m if not already set
+ARCH=${ARCH:-$(uname -m)}
+
 # Download the correct version based on the platform
 case "$(uname -s)" in
     Linux)
-        if [[ $(uname -m) == "aarch64" ]]; then
+        if [[ $ARCH == "aarch64" ]]; then
             PLATFORM="linux-aarch64-libchdb.tar.gz"
         else
             PLATFORM="linux-x86_64-libchdb.tar.gz"
         fi
         ;;
     Darwin)
-        if [[ $(uname -m) == "arm64" ]]; then
+        if [[ $ARCH == "arm64" ]]; then
             PLATFORM="macos-arm64-libchdb.tar.gz"
         else
             PLATFORM="macos-x86_64-libchdb.tar.gz"
