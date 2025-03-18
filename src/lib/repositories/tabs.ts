@@ -1,4 +1,4 @@
-import { db, type Database } from '$lib/database';
+import type { Database } from '$lib/database';
 
 export interface Tab {
 	id: string;
@@ -12,7 +12,7 @@ export interface TabRepository {
 	save(tabs: Tab[], activeIndex: number): Promise<void>;
 }
 
-class SQLiteTabRepository implements TabRepository {
+export class SQLiteTabRepository implements TabRepository {
 	constructor(private db: Database) {}
 
 	async get(): Promise<[tabs: Tab[], activeIndex: number]> {
@@ -51,5 +51,3 @@ function row_to_tab(row: Awaited<ReturnType<Database['exec']>>[number]): Tab {
 		query_id: row.query_id as number | undefined
 	};
 }
-
-export const tabRepository: TabRepository = new SQLiteTabRepository(db);

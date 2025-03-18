@@ -1,4 +1,4 @@
-import { db, type Database } from '$lib/database';
+import type { Database } from '$lib/database';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -17,7 +17,7 @@ export interface HistoryRepository {
 	delete(id: HistoryEntry['id']): Promise<void>;
 }
 
-class SQLiteHistoryRepository implements HistoryRepository {
+export class SQLiteHistoryRepository implements HistoryRepository {
 	constructor(private db: Database) {}
 
 	async getAll(): Promise<HistoryEntry[]> {
@@ -63,5 +63,3 @@ class SQLiteHistoryRepository implements HistoryRepository {
 		await this.db.exec('DELETE FROM history WHERE id = ?', [id]);
 	}
 }
-
-export const historyRepository: HistoryRepository = new SQLiteHistoryRepository(db);

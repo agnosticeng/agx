@@ -1,4 +1,4 @@
-import { db, type Database } from '$lib/database';
+import type { Database } from '$lib/database';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -21,7 +21,7 @@ export interface QueryRepository {
 	delete(id: number): Promise<void>;
 }
 
-class SQLiteQueryRepository implements QueryRepository {
+export class SQLiteQueryRepository implements QueryRepository {
 	constructor(private db: Database) {}
 
 	async getAll(): Promise<Query[]> {
@@ -75,5 +75,3 @@ function row_to_query(row: Awaited<ReturnType<Database['exec']>>[number]): Query
 			.toDate()
 	};
 }
-
-export const queryRepository: QueryRepository = new SQLiteQueryRepository(db);
