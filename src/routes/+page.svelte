@@ -23,8 +23,10 @@
 	import Play from '$lib/icons/Play.svelte';
 	import Plus from '$lib/icons/Plus.svelte';
 	import Save from '$lib/icons/Save.svelte';
+	import { MIGRATIONS } from '$lib/migrations';
 	import type { Table } from '$lib/olap-engine';
 	import { engine, type OLAPResponse } from '$lib/olap-engine';
+	import { Onboarding } from '$lib/onboarding';
 	import { PanelState } from '$lib/PanelState.svelte';
 	import {
 		SQLiteHistoryRepository,
@@ -38,21 +40,45 @@
 	} from '$lib/repositories/queries';
 	import { SQLiteTabRepository, type Tab, type TabRepository } from '$lib/repositories/tabs';
 	import { IndexedDBCache } from '@agnosticeng/cache';
+	import { MigrationManager } from '@agnosticeng/migrate';
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import debounce from 'p-debounce';
 	import { format } from 'sql-formatter';
-	import { tick, type ComponentProps } from 'svelte';
+	import { onMount, tick, type ComponentProps } from 'svelte';
 
 	const db = new Database();
+
 	const historyRepository: HistoryRepository = new SQLiteHistoryRepository(db);
 	const queryRepository: QueryRepository = new SQLiteQueryRepository(db);
 	const tabRepository: TabRepository = new SQLiteTabRepository(db);
 
+	const cache = new IndexedDBCache({ dbName: 'query-cache', storeName: 'response-data' });
+
+	let tables = $state.raw<Table[]>([]);
+	let history = $state.raw<HistoryEntry[]>([]);
+	let queries = $state.raw<Query[]>([]);
+	let tabs = $state<Tab[]>([]);
+	let selectedTabIndex = $state(0);
+	const currentTab = $derived(tabs[selectedTabIndex]);
+
+	onMount(async () => {
+		const migration = new MigrationManager(db);
+		await migration.migrate(MIGRATIONS);
+
+		const onboarding = new Onboarding(db);
+		if (onboarding.required) await onboarding.apply();
+
+		history = await historyRepository.getAll();
+		queries = await queryRepository.getAll();
+		[tabs, selectedTabIndex] = await tabRepository.get();
+
+		if (tabs.length === 0)
+			selectedTabIndex = tabs.push({ id: crypto.randomUUID(), content: '', name: 'Untitled' }) - 1;
+	});
+
 	let response = $state.raw<OLAPResponse>();
 	let loading = $state(false);
 	let counter = $state<ReturnType<typeof TimeCounter>>();
-
-	const cache = new IndexedDBCache({ dbName: 'query-cache', storeName: 'response-data' });
 	let cached = $state(false);
 
 	async function handleExec(force = false) {
@@ -67,7 +93,6 @@
 				if (r) {
 					cached = true;
 					response = r;
-					cached = true;
 					bottomPanel.open = true;
 					if (bottomPanelTab === 'logs') bottomPanelTab = 'data';
 					return;
@@ -82,10 +107,6 @@
 			counter?.stop();
 		}
 	}
-
-	let tables = $state.raw<Table[]>([]);
-	let history = $state.raw<HistoryEntry[]>([]);
-	let queries = $state.raw<Query[]>([]);
 
 	async function setupEditor() {
 		const [t, udfs] = await Promise.all([engine.getSchema(), engine.getUDFs()]);
@@ -103,9 +124,6 @@
 	}
 
 	setupEditor();
-
-	$effect(() => void historyRepository.getAll().then((entries) => (history = entries)));
-	$effect(() => void queryRepository.getAll().then((q) => (queries = q)));
 
 	engine.on('success', async (query: string) => {
 		if (typeof query !== 'string') return;
@@ -239,23 +257,12 @@
 		}
 	});
 
-	let tabs = $state<Tab[]>([]);
-	$effect(
-		() =>
-			void tabRepository.get().then(([t, active]) => {
-				if (t.length) (tabs = t), (selectedTabIndex = active);
-				else tabs.push({ id: crypto.randomUUID(), content: '', name: 'Untitled' });
-			})
-	);
-
 	const saveTabs = debounce(
 		(tabs: Tab[], activeIndex: number) => tabRepository.save(tabs, activeIndex),
 		2_000
 	);
 
 	let tabContainer: HTMLDivElement;
-	let selectedTabIndex = $state(0);
-	const currentTab = $derived(tabs[selectedTabIndex]);
 	const canSave = $derived.by(() => {
 		if (!tabs.length) return false;
 		if (currentTab.query_id) {
