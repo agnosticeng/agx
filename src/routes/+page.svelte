@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { dev } from '$app/environment';
 	import type { Log } from '$lib/components/Console.svelte';
 	import { ContextMenuState } from '$lib/components/ContextMenu';
 	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
@@ -25,6 +26,7 @@
 	import Save from '$lib/icons/Save.svelte';
 	import type { Table } from '$lib/olap-engine';
 	import { engine, type OLAPResponse } from '$lib/olap-engine';
+	import { onboarding } from '$lib/onboarding';
 	import { PanelState } from '$lib/PanelState.svelte';
 	import {
 		SQLiteHistoryRepository,
@@ -47,6 +49,9 @@
 	const historyRepository: HistoryRepository = new SQLiteHistoryRepository(db);
 	const queryRepository: QueryRepository = new SQLiteQueryRepository(db);
 	const tabRepository: TabRepository = new SQLiteTabRepository(db);
+
+	// @ts-ignore
+	if (dev) window.db = db;
 
 	let response = $state.raw<OLAPResponse>();
 	let loading = $state(false);
@@ -240,13 +245,24 @@
 	});
 
 	let tabs = $state<Tab[]>([]);
-	$effect(
-		() =>
-			void tabRepository.get().then(([t, active]) => {
-				if (t.length) (tabs = t), (selectedTabIndex = active);
-				else tabs.push({ id: crypto.randomUUID(), content: '', name: 'Untitled' });
-			})
-	);
+
+	async function initTabs() {
+		const [_tabs, active] = await tabRepository.get();
+		if (_tabs.length) {
+			tabs = _tabs;
+			selectedTabIndex = active;
+			return;
+		}
+
+		const samples = onboarding();
+		if (samples.length) {
+			selectedTabIndex = tabs.push(...samples) - 1;
+			return;
+		}
+
+		selectedTabIndex = tabs.push({ id: crypto.randomUUID(), content: '', name: 'Untitled' }) - 1;
+	}
+	$effect(() => void initTabs());
 
 	const saveTabs = debounce(
 		(tabs: Tab[], activeIndex: number) => tabRepository.save(tabs, activeIndex),
