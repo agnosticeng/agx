@@ -1,0 +1,72 @@
+@import 'highlight.js/styles/default.min.css';
+@import 'highlight.js/styles/github-dark.min.css';
+
+.markdown-body {
+	width: 100%;
+	overflow-x: auto;
+	word-break: break-word;
+
+	* {
+		font-family: 'Source Serif Pro', 'Iowan Old Style', 'Apple Garamond', 'Palatino Linotype',
+			'Times New Roman', 'Droid Serif', Times, serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+			'Segoe UI Symbol';
+	}
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		margin: 0;
+	}
+
+	a {
+		color: palevioletred;
+		text-decoration: underline;
+	}
+
+	code {
+		font-family: monospace;
+		font-size: 13px;
+	}
+
+	code:not(pre > code) {
+		background-color: #333;
+		border-radius: 3px;
+		padding: 0 2px;
+	}
+
+	li {
+		margin-bottom: 10px;
+	}
+
+	pre {
+		font-family: Menlo, Consolas, monospace;
+		margin: 0;
+		position: relative;
+		width: 100%;
+		box-sizing: border-box;
+		overflow-x: auto;
+	}
+
+	pre code {
+		display: block;
+		padding: 0;
+		margin: 0;
+		top: 0;
+		width: 100%;
+		background: transparent;
+	}
+
+	code.hljs {
+		text-align: left;
+		border-radius: 8px;
+		word-wrap: normal;
+		hyphens: none;
+		line-height: 1.5;
+		tab-size: 4;
+		white-space: pre;
+		word-break: normal;
+		word-spacing: normal;
+	}
+}
