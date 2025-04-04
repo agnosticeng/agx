@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Chat } from '$lib/components/Ai';
+	import type { ChatInput } from '$lib/components/Ai/types';
 	import type { Log } from '$lib/components/Console.svelte';
 	import { ContextMenuState } from '$lib/components/ContextMenu';
 	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
@@ -12,17 +14,18 @@
 	import TabComponent from '$lib/components/Tab.svelte';
 	import TimeCounter from '$lib/components/TimeCounter.svelte';
 	import { setAppContext } from '$lib/context';
-	import { store } from '$lib/store';
 	import { FileDropEventManager } from '$lib/FileDropEventManager';
 	import Bars3 from '$lib/icons/Bars3.svelte';
-	import Bold from '$lib/icons/Bold.svelte';
+	import Bolt from '$lib/icons/Bolt.svelte';
 	import Copy from '$lib/icons/Copy.svelte';
 	import MagicWand from '$lib/icons/MagicWand.svelte';
 	import PanelBottom from '$lib/icons/PanelBottom.svelte';
 	import PanelLeft from '$lib/icons/PanelLeft.svelte';
+	import PanelRight from '$lib/icons/PanelRight.svelte';
 	import Play from '$lib/icons/Play.svelte';
 	import Plus from '$lib/icons/Plus.svelte';
 	import Save from '$lib/icons/Save.svelte';
+	import Sparkles from '$lib/icons/Sparkles.svelte';
 	import type { Table } from '$lib/olap-engine';
 	import { engine, type OLAPResponse } from '$lib/olap-engine';
 	import { PanelState } from '$lib/PanelState.svelte';
@@ -37,6 +40,7 @@
 		type QueryRepository
 	} from '$lib/repositories/queries';
 	import { SQLiteTabRepository, type Tab, type TabRepository } from '$lib/repositories/tabs';
+	import { store } from '$lib/store';
 	import { IndexedDBCache } from '@agnosticeng/cache';
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import debounce from 'p-debounce';
@@ -137,7 +141,7 @@
 			selectedTabIndex =
 				tabs.push({ id: crypto.randomUUID(), content: entry.content, name: 'Untitled' }) - 1;
 		} else tabs[selectedTabIndex] = { ...currentTab, content: entry.content };
-		if (isMobile) drawerOpened = false;
+		if (isMobile) leftDrawerOpened = false;
 	}
 
 	async function handleHistoryDelete(entry: HistoryEntry) {
@@ -195,7 +199,7 @@
 				};
 		} else selectedTabIndex = index;
 
-		if (isMobile) drawerOpened = false;
+		if (isMobile) leftDrawerOpened = false;
 	}
 
 	async function handleQueryRename(query: Query) {
@@ -227,7 +231,8 @@
 
 	let screenWidth = $state(0);
 	let isMobile = $derived(screenWidth < 768 && PLATFORM === 'WEB');
-	let drawerOpened = $state(false);
+	let leftDrawerOpened = $state(false);
+	let rightDrawerOpened = $state(false);
 
 	$effect(() => {
 		if (isMobile) {
@@ -279,6 +284,7 @@
 
 	const bottomPanel = new PanelState('50%', false, '100%');
 	const leftPanel = new PanelState('260px', true);
+	const rightPanel = new PanelState('-300px', false);
 
 	let bottomPanelTab = $state<'data' | 'chart' | 'logs'>('data');
 	let errors = $state.raw<Log[]>([]);
@@ -334,6 +340,14 @@ LIMIT 100;`;
 			selectedTabIndex = tabs.push({ id: crypto.randomUUID(), content, name: 'Untitled' }) - 1;
 		else currentTab.content = content;
 	}
+
+	let messages = $state.raw<ChatInput['messages']>([
+		{
+			role: 'system',
+			content:
+				"You are a ClickHouse expert specializing in OLAP databases, SQL format, and functions. You can produce SQL queries using knowledge of ClickHouse's architecture, data modeling, performance optimization, query execution, and advanced analytical functions."
+		}
+	]);
 </script>
 
 <svelte:window onkeydown={handleKeyDown} bind:innerWidth={screenWidth} />
@@ -353,11 +367,18 @@ LIMIT 100;`;
 	/>
 {/snippet}
 
+{#snippet ai()}
+	<Chat bind:messages />
+{/snippet}
+
 <section class="screen" class:is-mobile={isMobile}>
 	<div class="workspace">
 		{#if isMobile}
-			<Drawer bind:open={drawerOpened} width={242}>
+			<Drawer bind:open={leftDrawerOpened} width={242}>
 				{@render sidebar()}
+			</Drawer>
+			<Drawer position="right" bind:open={rightDrawerOpened} width={300}>
+				{@render ai()}
 			</Drawer>
 		{/if}
 		<SplitPane
@@ -374,86 +395,115 @@ LIMIT 100;`;
 			{/snippet}
 			{#snippet b()}
 				<SplitPane
-					type="vertical"
-					min="20%"
-					max={bottomPanel.open ? '80%' : '100%'}
-					bind:pos={bottomPanel.position}
-					disabled={!bottomPanel.open}
-					--color="hsl(0deg 0% 20%)"
+					type="horizontal"
+					disabled={!rightPanel.open || isMobile}
+					bind:pos={rightPanel.position}
+					max="-300px"
+					min={rightPanel.open && !isMobile ? '-48rem' : '100%'}
 				>
 					{#snippet a()}
-						<div>
-							<nav class="navigation">
-								<div class="tabs-container" bind:this={tabContainer}>
-									{#if isMobile}
-										<button class="action burger" onclick={() => (drawerOpened = true)}>
-											<Bars3 size="12" />
-										</button>
-									{/if}
-									{#each tabs as tab, i}
-										<TabComponent
-											hide-close={tabs.length === 1}
-											active={i === selectedTabIndex}
-											label={tab.name}
-											onClose={() => closeTab(i)}
-											onSelect={() => (selectedTabIndex = i)}
-										/>
+						<SplitPane
+							type="vertical"
+							min="20%"
+							max={bottomPanel.open ? '80%' : '100%'}
+							bind:pos={bottomPanel.position}
+							disabled={!bottomPanel.open}
+							--color="hsl(0deg 0% 20%)"
+						>
+							{#snippet a()}
+								<div>
+									<nav class="navigation">
+										<div class="tabs-container" bind:this={tabContainer}>
+											{#if isMobile}
+												<button class="action burger" onclick={() => (leftDrawerOpened = true)}>
+													<Bars3 size="12" />
+												</button>
+											{/if}
+											{#each tabs as tab, i}
+												<TabComponent
+													hide-close={tabs.length === 1}
+													active={i === selectedTabIndex}
+													label={tab.name}
+													onClose={() => closeTab(i)}
+													onSelect={() => (selectedTabIndex = i)}
+												/>
+											{/each}
+											<button
+												onclick={addNewTab}
+												class="add-new"
+												aria-label="Open new tab"
+												title="Open new tab"
+											>
+												<Plus size="14" />
+											</button>
+										</div>
+										<div class="workspace-actions">
+											<button
+												class="action"
+												title="Copy"
+												onclick={() => navigator.clipboard.writeText(currentTab.content)}
+											>
+												<Copy size="12" />
+											</button>
+											<button class="action" title="Format" onclick={handleFormat}>
+												<MagicWand size="12" />
+											</button>
+											<button
+												class="action"
+												title="Save"
+												onclick={handleSaveQuery}
+												disabled={!canSave}
+											>
+												<Save size="12" />
+											</button>
+											<button
+												class="action"
+												title="Run"
+												onclick={() => handleExec()}
+												disabled={loading}
+											>
+												<Play size="12" />
+											</button>
+											<button
+												class="action"
+												title="Force run"
+												onclick={() => handleExec(true)}
+												disabled={loading}
+											>
+												<Bolt size="12" />
+											</button>
+											{#if isMobile}
+												<button
+													class="action"
+													title="Toggle AI chat"
+													onclick={() => (rightDrawerOpened = true)}
+												>
+													<Sparkles size="12" />
+												</button>
+											{/if}
+										</div>
+									</nav>
+									{#each tabs as tab, i (tab.id)}
+										<div style:display={selectedTabIndex == i ? 'block' : 'none'}>
+											<Editor bind:value={tab.content} />
+										</div>
 									{/each}
-									<button
-										onclick={addNewTab}
-										class="add-new"
-										aria-label="Open new tab"
-										title="Open new tab"
-									>
-										<Plus size="14" />
-									</button>
 								</div>
-								<div class="workspace-actions">
-									<button
-										class="action"
-										title="Copy"
-										onclick={() => navigator.clipboard.writeText(currentTab.content)}
-									>
-										<Copy size="12" />
-									</button>
-									<button class="action" title="Format" onclick={handleFormat}>
-										<MagicWand size="12" />
-									</button>
-									<button class="action" title="Save" onclick={handleSaveQuery} disabled={!canSave}>
-										<Save size="12" />
-									</button>
-									<button
-										class="action"
-										title="Run"
-										onclick={() => handleExec()}
-										disabled={loading}
-									>
-										<Play size="12" />
-									</button>
-									<button
-										class="action"
-										title="Force run"
-										onclick={() => handleExec(true)}
-										disabled={loading}
-									>
-										<Bold size="12" />
-									</button>
-								</div>
-							</nav>
-							{#each tabs as tab, i (tab.id)}
-								<div style:display={selectedTabIndex == i ? 'block' : 'none'}>
-									<Editor bind:value={tab.content} />
-								</div>
-							{/each}
-						</div>
+							{/snippet}
+							{#snippet b()}
+								<Result
+									{response}
+									logs={errors}
+									bind:tab={bottomPanelTab}
+									onClearLogs={() => (errors = [])}
+								/>
+							{/snippet}
+						</SplitPane>
 					{/snippet}
 					{#snippet b()}
-						<Result
-							{response}
-							logs={errors}
-							bind:tab={bottomPanelTab}
-							onClearLogs={() => (errors = [])}
-						/>
+						{#if !isMobile}
+							{@render ai()}
+						{/if}
 					{/snippet}
 				</SplitPane>
 			{/snippet}
@@ -479,9 +529,15 @@ LIMIT 100;`;
 			<button
 				class:active={bottomPanel.open}
 				onclick={() => (bottomPanel.open = !bottomPanel.open)}
-				style:margin-right="7px"
 			>
 				<PanelBottom size="12" />
+			</button>
+			<button
+				class:active={rightPanel.open}
+				onclick={() => (rightPanel.open = !rightPanel.open)}
+				style:margin-right="7px"
+			>
+				<PanelRight size="12" />
 			</button>
 		</footer>
 	{/if}
