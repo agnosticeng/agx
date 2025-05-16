@@ -14,6 +14,7 @@
 		tab?: 'data' | 'chart' | 'logs';
 		onClearLogs?: () => void;
 		warnings?: string[];
+		onClickFixWithAi?: (log: Log) => void;
 	}
 
 	let {
@@ -21,7 +22,8 @@
 		logs = [],
 		tab = $bindable('data'),
 		onClearLogs,
-		warnings = []
+		warnings = [],
+		onClickFixWithAi
 	}: Props = $props();
 </script>
 
@@ -68,7 +70,7 @@
 		</div>
 
 		<div class="tab-content" style:visibility={tab === 'logs' ? 'visible' : 'hidden'}>
-			<Console {logs} />
+			<Console {logs} {onClickFixWithAi} />
 		</div>
 	</div>
 </section>

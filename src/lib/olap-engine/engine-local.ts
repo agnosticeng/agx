@@ -1,4 +1,4 @@
-import { invoke, Channel } from '@tauri-apps/api/core';
+import { Channel, invoke } from '@tauri-apps/api/core';
 import { InternalEventEmitter } from './EventListener';
 import type { Events, ExecOptions, OLAPEngine, OLAPResponse, Table } from './index';
 
@@ -68,7 +68,7 @@ export class LocalEngine extends InternalEventEmitter<Events> implements OLAPEng
 			return data;
 		} catch (e) {
 			console.error(body);
-			if (_emit) this.emit('error', new Error(body));
+			if (_emit) this.emit('error', query, new Error(body));
 		}
 	}
 

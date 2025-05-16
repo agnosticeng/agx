@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { AiPanel, deserializeModel, serializeModel, type Chat } from '$lib/components/Ai';
+	import {
+		AiPanel,
+		deserializeModel,
+		generateFixMessage,
+		serializeModel,
+		type Chat
+	} from '$lib/components/Ai';
 	import type { Log } from '$lib/components/Console.svelte';
 	import { ContextMenuState } from '$lib/components/ContextMenu';
 	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
@@ -303,10 +309,10 @@
 
 	let bottomPanelTab = $state<'data' | 'chart' | 'logs'>('data');
 	let errors = $state.raw<Log[]>([]);
-	engine.on('error', (e) => {
+	engine.on('error', (query: string, e: unknown) => {
 		if (e instanceof Error) {
 			if (e.message === 'Canceled') return;
-			errors = errors.concat({ level: 'error', timestamp: new Date(), data: e.message });
+			errors = errors.concat({ level: 'error', timestamp: new Date(), data: e.message, query });
 			bottomPanel.open = true;
 			bottomPanelTab = 'logs';
 		}
@@ -389,6 +395,18 @@ LIMIT 100;`;
 			) ?? fallback
 		);
 	});
+
+	function handleFixQuery({ data, query }: Log) {
+		focusedChat =
+			chats.push({
+				id: crypto.randomUUID(),
+				name: 'New Chat',
+				messages: [{ role: 'user', content: generateFixMessage(query, data) }]
+			}) - 1;
+
+		if (isMobile) rightDrawerOpened = true;
+		else rightPanel.open = true;
+	}
 </script>
 
 <svelte:window onkeydown={handleKeyDown} bind:innerWidth={screenWidth} />
@@ -566,6 +584,7 @@ LIMIT 100;`;
 									logs={errors}
 									bind:tab={bottomPanelTab}
 									onClearLogs={() => (errors = [])}
+									onClickFixWithAi={handleFixQuery}
 									{warnings}
 								/>
 							{/snippet}

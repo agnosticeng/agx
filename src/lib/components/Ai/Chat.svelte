@@ -8,6 +8,7 @@
 	import Stop from '$lib/icons/Stop.svelte';
 	import { getTextFromElement, transform } from '$lib/markdown';
 	import type { Table } from '$lib/olap-engine';
+	import { onMount } from 'svelte';
 	import ChangeModelBox from './ChangeModelBox.svelte';
 	import DatasetsBox from './DatasetsBox.svelte';
 	import Loader from './Loader.svelte';
@@ -42,8 +43,8 @@
 	let datasetSelectbox = $state<ReturnType<typeof Select>>();
 	let textarea = $state<HTMLTextAreaElement>();
 	let abortController: AbortController | undefined;
-	let chatMessages = $derived(messages.filter((m) => m.role === 'user' || m.role === 'assistant'));
 	let modelSelectbox = $state<ReturnType<typeof Select>>();
+	let form = $state<HTMLFormElement>();
 	const uid = $props.id();
 
 	function getContextFromTable(table: Table): string {
@@ -55,6 +56,8 @@
 		dataset ??= datasets?.at(0);
 	});
 
+	onMount(() => form?.dispatchEvent(new SubmitEvent('submit')));
+
 	const client = $derived(new OpenAIClient(selectedModel.baseURL));
 
 	async function handleSubmit(
@@ -62,14 +65,18 @@
 	) {
 		event.preventDefault();
 
-		const data = new FormData(event.currentTarget);
-		let content = data.get('message');
-		if (!content || typeof content !== 'string') return;
-		content = content.trim();
-		if (!content.length) return;
+		const lastMessage = messages.at(-1);
+		if (lastMessage?.role !== 'user') {
+			const data = new FormData(event.currentTarget);
+			let content = data.get('message');
+			if (!content || typeof content !== 'string') return;
+			content = content.trim();
+			if (!content.length) return;
 
-		message = '';
-		messages = messages.concat({ content, role: 'user' });
+			message = '';
+			messages = messages.concat({ role: 'user', content });
+		}
+
 		loading = true;
 
 		try {
@@ -139,7 +146,7 @@
 		role="presentation"
 		onclick={(e) => e.target === e.currentTarget && textarea?.focus()}
 	>
-		{#each chatMessages as { role, content }, index}
+		{#each messages as { role, content }, index}
 			<article data-role={role}>
 				<h2>
 					{#if role === 'user'}
@@ -162,8 +169,8 @@
 		{:else}
 			<article>
 				<h2>You</h2>
-				{#if chatMessages.length === 0 && dataset}{@render context(dataset)}{/if}
-				<form id="{uid}-user-message" method="POST" onsubmit={handleSubmit}>
+				{#if messages.length === 0 && dataset}{@render context(dataset)}{/if}
+				<form id="{uid}-user-message" method="POST" onsubmit={handleSubmit} bind:this={form}>
 					<textarea
 						name="message"
 						tabindex="0"
@@ -239,7 +246,13 @@
 				<Stop size="11" />
 			</button>
 		{:else}
-			<button form="{uid}-user-message" type="submit" bind:this={submitter} title="Send ⌘⏎">
+			<button
+				form="{uid}-user-message"
+				type="submit"
+				bind:this={submitter}
+				title="Send ⌘⏎"
+				disabled={!message}
+			>
 				Send ⌘⏎
 			</button>
 		{/if}

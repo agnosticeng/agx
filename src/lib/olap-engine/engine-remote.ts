@@ -26,7 +26,7 @@ export class RemoteEngine extends InternalEventEmitter<Events> implements OLAPEn
 			return data;
 		} catch (e) {
 			console.error(e);
-			if (_emit) this.emit('error', e);
+			if (_emit) this.emit('error', query, e);
 		}
 	}
 
