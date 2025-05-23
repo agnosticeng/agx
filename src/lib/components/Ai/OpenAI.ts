@@ -52,6 +52,7 @@ interface ChatCompletionChoice {
 interface RequestOptions {
 	signal?: AbortSignal;
 	fetch?: typeof fetch;
+	token?: string | null;
 }
 
 export class OpenAIClient {
@@ -79,9 +80,14 @@ export class OpenAIClient {
 	async createChatCompletion(input: ChatCompletionInput, options: RequestOptions = {}) {
 		options.fetch ??= fetch;
 
+		const headers = new Headers(this.headers);
+		if (options.token) {
+			headers.set('Authorization', 'Bearer ' + options.token);
+		}
+
 		const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
 			method: 'POST',
-			headers: this.headers,
+			headers,
 			body: JSON.stringify(input),
 			signal: options.signal
 		});

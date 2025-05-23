@@ -7,8 +7,6 @@
 		type Chat
 	} from '$lib/components/Ai';
 	import type { Log } from '$lib/components/Console.svelte';
-	import { ContextMenuState } from '$lib/components/ContextMenu';
-	import ContextMenu from '$lib/components/ContextMenu/ContextMenu.svelte';
 	import { goToDefinition } from '$lib/components/Datasets';
 	import Drawer from '$lib/components/Drawer.svelte';
 	import { functions, keywords, operators, types } from '$lib/components/Editor/clickhouse';
@@ -19,7 +17,6 @@
 	import SideBar from '$lib/components/SideBar.svelte';
 	import TabComponent from '$lib/components/Tab.svelte';
 	import TimeCounter from '$lib/components/TimeCounter.svelte';
-	import { setAppContext } from '$lib/context';
 	import { FileDropEventManager } from '$lib/FileDropEventManager';
 	import { isResponseTooLarge, LARGE_RESULT } from '$lib/hints';
 	import Bars3 from '$lib/icons/Bars3.svelte';
@@ -247,9 +244,6 @@
 		}
 	}
 
-	const contextmenu = new ContextMenuState();
-	setAppContext({ contextmenu: contextmenu });
-
 	let screenWidth = $state(0);
 	let isMobile = $derived(screenWidth < 768 && PLATFORM === 'WEB');
 	let leftDrawerOpened = $state(false);
@@ -365,11 +359,12 @@ LIMIT 100;`;
 
 	let chats = $state<Chat[]>([]);
 	let focusedChat = $state(0);
-	function onRightPanelOpen() {
-		if (chats.length === 0) {
+	$effect(() => {
+		const isAIPanelOpened = isMobile ? rightDrawerOpened : rightPanel.open;
+		if (isAIPanelOpened && chats.length === 0) {
 			chats = [{ id: crypto.randomUUID(), messages: [], name: 'New Chat', dataset: tables.at(0) }];
 		}
-	}
+	});
 
 	const saveChat = debounce(
 		(chats: Chat[], active: number) => chatsRepository.save(chats, active),
@@ -380,7 +375,6 @@ LIMIT 100;`;
 		() =>
 			void chatsRepository.list().then(([c, active]) => {
 				if (c.length) (chats = c), (focusedChat = active);
-				else onRightPanelOpen();
 			})
 	);
 
@@ -410,8 +404,6 @@ LIMIT 100;`;
 </script>
 
 <svelte:window onkeydown={handleKeyDown} bind:innerWidth={screenWidth} />
-
-<ContextMenu state={contextmenu} />
 
 {#snippet sidebar()}
 	<SideBar
@@ -557,10 +549,7 @@ LIMIT 100;`;
 												<button
 													class="action"
 													title="Toggle AI chat"
-													onclick={() => {
-														rightDrawerOpened = true;
-														onRightPanelOpen();
-													}}
+													onclick={() => (rightDrawerOpened = true)}
 												>
 													<Sparkles size="12" />
 												</button>
@@ -633,10 +622,7 @@ LIMIT 100;`;
 			</button>
 			<button
 				class:active={rightPanel.open}
-				onclick={() => {
-					rightPanel.open = !rightPanel.open;
-					onRightPanelOpen();
-				}}
+				onclick={() => (rightPanel.open = !rightPanel.open)}
 				style:margin-right="7px"
 			>
 				<PanelRight size="12" />

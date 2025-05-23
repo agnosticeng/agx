@@ -69,7 +69,7 @@
 				onClearConversation={() => (chat.messages = [])}
 				{onOpenInEditor}
 				{models}
-				{selectedModel}
+				model={selectedModel}
 				{onModelChange}
 			/>
 		</div>

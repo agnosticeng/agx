@@ -24,12 +24,17 @@
       "icons/icon.ico"
     ]
   },
-
   "productName": "agx",
   "mainBinaryName": "agx",
   "version": "0.1.0",
   "identifier": "app.agx",
-  "plugins": {},
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["agx"]
+      }
+    }
+  },
   "app": {
     "security": {
       "csp": null

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { autoresize } from '$lib/actions/autoresize.svelte';
 	import { scroll_to_bottom } from '$lib/actions/scrollToBottom.svelte';
+	import { getToken } from '$lib/auth';
 	import Select from '$lib/components/Select.svelte';
+	import { getAppContext } from '$lib/context';
 	import ChevronDown from '$lib/icons/ChevronDown.svelte';
 	import CircleStack from '$lib/icons/CircleStack.svelte';
 	import Plus from '$lib/icons/Plus.svelte';
@@ -9,6 +11,8 @@
 	import { getTextFromElement, transform } from '$lib/markdown';
 	import type { Table } from '$lib/olap-engine';
 	import { onMount } from 'svelte';
+	import { isAgnosticModel } from '.';
+	import Login from '../Login.svelte';
 	import ChangeModelBox from './ChangeModelBox.svelte';
 	import DatasetsBox from './DatasetsBox.svelte';
 	import Loader from './Loader.svelte';
@@ -22,7 +26,7 @@
 		dataset?: Table;
 		onOpenInEditor?: (sql: string) => void;
 		models: Model[];
-		selectedModel: Model;
+		model: Model;
 		onModelChange: (m: Model) => void;
 	}
 
@@ -33,7 +37,7 @@
 		dataset = $bindable(),
 		onOpenInEditor,
 		models,
-		selectedModel,
+		model,
 		onModelChange
 	}: Props = $props();
 
@@ -46,6 +50,8 @@
 	let modelSelectbox = $state<ReturnType<typeof Select>>();
 	let form = $state<HTMLFormElement>();
 	const uid = $props.id();
+	const { isAuthenticated } = getAppContext();
+	const needToLogin = $derived(isAgnosticModel(model) && !isAuthenticated());
 
 	function getContextFromTable(table: Table): string {
 		const columns = table.columns.map((col) => `- ${col.name} (${col.type})`).join('\n');
@@ -57,17 +63,23 @@
 	});
 
 	onMount(() => form?.dispatchEvent(new SubmitEvent('submit')));
-
-	const client = $derived(new OpenAIClient(selectedModel.baseURL));
+	const client = $derived(new OpenAIClient(model.baseURL));
 
 	async function handleSubmit(
 		event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement }
 	) {
 		event.preventDefault();
+		const form = event.currentTarget;
+
+		let token: string | undefined;
+		if (isAgnosticModel(model)) {
+			if (isAuthenticated()) token = await getToken();
+			else return;
+		}
 
 		const lastMessage = messages.at(-1);
 		if (lastMessage?.role !== 'user') {
-			const data = new FormData(event.currentTarget);
+			const data = new FormData(form);
 			let content = data.get('message');
 			if (!content || typeof content !== 'string') return;
 			content = content.trim();
@@ -83,13 +95,13 @@
 			abortController = new AbortController();
 			const completion = await client.createChatCompletion(
 				{
-					model: selectedModel.name,
+					model: model.name,
 					messages: dataset
 						? [{ role: 'system', content: getContextFromTable(dataset) }, ...messages]
 						: messages,
 					stream: false
 				},
-				{ signal: abortController.signal }
+				{ signal: abortController.signal, token }
 			);
 
 			messages = messages.concat(completion.choices[0].message);
@@ -140,58 +152,62 @@
 {/snippet}
 
 <div class="chat-container">
-	<section
-		class="conversation"
-		use:scroll_to_bottom
-		role="presentation"
-		onclick={(e) => e.target === e.currentTarget && textarea?.focus()}
-	>
-		{#each messages as { role, content }, index}
-			<article data-role={role}>
-				<h2>
-					{#if role === 'user'}
-						You
-					{:else if role === 'assistant'}
-						Assistant
-					{/if}
-				</h2>
-				{#if index === 0 && dataset}{@render context(dataset)}{/if}
-				<p class="markdown" onclickcapture={handleClick}>
-					{@html transform(content)}
-				</p>
-			</article>
-		{/each}
-		{#if loading}
-			<article>
-				<h2>Assistant</h2>
-				<Loader />
-			</article>
-		{:else}
-			<article>
-				<h2>You</h2>
-				{#if messages.length === 0 && dataset}{@render context(dataset)}{/if}
-				<form id="{uid}-user-message" method="POST" onsubmit={handleSubmit} bind:this={form}>
-					<textarea
-						name="message"
-						tabindex="0"
-						rows="1"
-						placeholder="Ask {selectedModel.name}"
-						disabled={loading}
-						use:autoresize
-						bind:value={message}
-						bind:this={textarea}
-						onkeydown={(e) => {
-							e.stopPropagation();
-							if (e.code === 'Enter' && e.metaKey) {
-								e.preventDefault();
-								submitter?.click();
-							}
-						}}
-					></textarea>
-				</form>
-			</article>
-		{/if}
-	</section>
+	{#if needToLogin}
+		<div class="login-wrapper"><Login /></div>
+	{:else}
+		<section
+			class="conversation"
+			use:scroll_to_bottom
+			role="presentation"
+			onclick={(e) => e.target === e.currentTarget && textarea?.focus()}
+		>
+			{#each messages as { role, content }, index}
+				<article data-role={role}>
+					<h2>
+						{#if role === 'user'}
+							You
+						{:else if role === 'assistant'}
+							Assistant
+						{/if}
+					</h2>
+					{#if index === 0 && dataset}{@render context(dataset)}{/if}
+					<p class="markdown" onclickcapture={handleClick}>
+						{@html transform(content)}
+					</p>
+				</article>
+			{/each}
+			{#if loading}
+				<article>
+					<h2>Assistant</h2>
+					<Loader />
+				</article>
+			{:else}
+				<article>
+					<h2>You</h2>
+					{#if messages.length === 0 && dataset}{@render context(dataset)}{/if}
+					<form id="{uid}-user-message" method="POST" onsubmit={handleSubmit} bind:this={form}>
+						<textarea
+							name="message"
+							tabindex="0"
+							rows="1"
+							placeholder="Ask {model.name}"
+							disabled={loading}
+							use:autoresize
+							bind:value={message}
+							bind:this={textarea}
+							onkeydown={(e) => {
+								e.stopPropagation();
+								if (e.code === 'Enter' && e.metaKey) {
+									e.preventDefault();
+									submitter?.click();
+								}
+							}}
+						></textarea>
+					</form>
+				</article>
+			{/if}
+		</section>
+	{/if}
 
 	<div class="submitter">
 		<button
@@ -220,7 +236,7 @@
 			disabled={models.length === 1}
 			class="select-trigger"
 		>
-			<span>{selectedModel.name}</span>
+			<span>{model.name}</span>
 			{#if models.length > 1}
 				<ChevronDown size="12" />
 			{/if}
@@ -228,7 +244,7 @@
 		<Select bind:this={modelSelectbox} placement="top-start" id="change-model">
 			<ChangeModelBox
 				{models}
-				bind:model={selectedModel}
+				bind:model
 				onSelect={(m) => {
 					modelSelectbox?.close();
 					abortController?.abort('Model changed');
@@ -251,7 +267,7 @@
 				type="submit"
 				bind:this={submitter}
 				title="Send ⌘⏎"
-				disabled={!message}
+				disabled={needToLogin}
 			>
 				Send ⌘⏎
 			</button>
@@ -265,6 +281,10 @@
 
 		height: 100%;
 		width: 100%;
+	}
+
+	.login-wrapper {
+		height: calc(100% - var(--submitter-height));
 	}
 
 	.conversation {

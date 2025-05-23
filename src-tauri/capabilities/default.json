@@ -33,6 +33,8 @@
       ]
     },
     "shell:allow-open",
-    "shell:default"
+    "shell:default",
+    "opener:default",
+    "deep-link:default"
   ]
 }

@@ -19,6 +19,10 @@ export const ArgnosticModel: Model = {
 	baseURL: 'https://ai.agx.app/'
 };
 
+export function isAgnosticModel(m: Model) {
+	return m.baseURL === m.baseURL;
+}
+
 export function serializeModel(model: Model) {
 	return JSON.stringify(model);
 }
