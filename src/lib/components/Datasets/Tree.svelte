@@ -38,7 +38,7 @@
 		const element = document.getElementById(id);
 		if (element) {
 			element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-			element.style.backgroundColor = 'yellow';
+			element.style.backgroundColor = 'hsl(60 40% 34% / 1)';
 		}
 	}
 </script>
@@ -110,6 +110,7 @@
 		margin-top: 3px;
 
 		transition: background-color linear 0.25s;
+		scroll-margin-top: 30px;
 	}
 
 	.name span {
