@@ -17,10 +17,12 @@
 	import SideBar from '$lib/components/SideBar.svelte';
 	import TabComponent from '$lib/components/Tab.svelte';
 	import TimeCounter from '$lib/components/TimeCounter.svelte';
+	import { getAppContext } from '$lib/context';
 	import { FileDropEventManager } from '$lib/FileDropEventManager';
 	import { isResponseTooLarge, LARGE_RESULT } from '$lib/hints';
 	import Bars3 from '$lib/icons/Bars3.svelte';
 	import Bolt from '$lib/icons/Bolt.svelte';
+	import CheckBadge from '$lib/icons/CheckBadge.svelte';
 	import Copy from '$lib/icons/Copy.svelte';
 	import MagicWand from '$lib/icons/MagicWand.svelte';
 	import PanelBottom from '$lib/icons/PanelBottom.svelte';
@@ -29,6 +31,7 @@
 	import Play from '$lib/icons/Play.svelte';
 	import Plus from '$lib/icons/Plus.svelte';
 	import Save from '$lib/icons/Save.svelte';
+	import Settings from '$lib/icons/Settings.svelte';
 	import Sparkles from '$lib/icons/Sparkles.svelte';
 	import Stop from '$lib/icons/Stop.svelte';
 	import type { Table } from '$lib/olap-engine';
@@ -54,6 +57,7 @@
 	import { format } from 'sql-formatter';
 	import { tick, type ComponentProps } from 'svelte';
 	import type { PageProps } from './$types';
+	import { SettingsModal } from './settings';
 
 	let { data }: PageProps = $props();
 
@@ -70,6 +74,7 @@
 
 	const cache = new IndexedDBCache({ dbName: 'query-cache', storeName: 'response-data' });
 	let cached = $state(false);
+	const { isAuthenticated } = getAppContext();
 
 	async function handleExec(force = false) {
 		const query = currentTab.content;
@@ -169,6 +174,7 @@
 	}
 
 	let saveQueryModal = $state<ReturnType<typeof SaveQueryModal>>();
+	let settingsModal = $state<ReturnType<typeof SettingsModal>>();
 
 	async function handleKeyDown(event: KeyboardEvent) {
 		if (event.key === 's' && event.metaKey) {
@@ -501,6 +507,9 @@ LIMIT 100;`;
 											</button>
 										</div>
 										<div class="workspace-actions">
+											<button class="action" title="Settings" onclick={() => settingsModal?.show()}>
+												<Settings size="12" />
+											</button>
 											<button
 												class="action"
 												title="Copy"
@@ -597,6 +606,9 @@ LIMIT 100;`;
 			>
 				<PanelLeft size="12" />
 			</button>
+			<button class:active={isAuthenticated()} onclick={() => settingsModal?.show('Subscription')}>
+				<CheckBadge size="12" />
+			</button>
 			{#if BUILD}
 				<span class="label">build-{BUILD}</span>
 			{/if}
@@ -632,6 +644,7 @@ LIMIT 100;`;
 </section>
 
 <SaveQueryModal bind:this={saveQueryModal} onCreate={handleCreateQuery} />
+<SettingsModal bind:this={settingsModal} />
 
 <style>
 	.navigation {

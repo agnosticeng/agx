@@ -52,8 +52,6 @@
 	dialog {
 		display: block;
 		inset: 0;
-		max-inline-size: min(90vw, 60ch);
-		max-block-size: min(80vh, 100%);
 		margin-top: 0;
 		overflow: hidden;
 		transition: opacity 0.3s;
@@ -69,7 +67,7 @@
 		border-top-right-radius: 0;
 
 		width: 100%;
-		max-width: 420px;
+		max-width: var(--modal-max-width, 420px);
 	}
 
 	dialog[open] {
