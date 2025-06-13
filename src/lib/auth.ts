@@ -1,4 +1,4 @@
-import { type Auth0Client, createAuth0Client } from '@auth0/auth0-spa-js';
+import { Auth0Client } from '@auth0/auth0-spa-js';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { openUrl as openUrlWithBrowser } from '@tauri-apps/plugin-opener';
 import mitt from 'mitt';
@@ -11,7 +11,7 @@ const noop = () => {};
 
 let client: Auth0Client;
 async function init() {
-	client = await createAuth0Client({
+	client = new Auth0Client({
 		domain: AUTH0_DOMAIN,
 		clientId: AUTH0_CLIENT_ID,
 		authorizationParams: {
@@ -20,6 +20,8 @@ async function init() {
 		cacheLocation: 'localstorage',
 		useRefreshTokens: true
 	});
+
+	await client.checkSession().catch(() => logout(true));
 
 	emitter.emit('auth:changed', await client.isAuthenticated());
 }
