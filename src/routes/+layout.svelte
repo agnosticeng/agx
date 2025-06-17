@@ -5,18 +5,30 @@
 	import { store } from '$lib/store';
 	import { MigrationManager } from '@agnosticeng/migrate';
 
-	import { checkLoginState, onStateChange } from '$lib/auth';
+	import { checkLoginState, getToken, onStateChange } from '$lib/auth';
 	import { ContextMenu, ContextMenuState } from '$lib/components/ContextMenu';
 	import { setAppContext } from '$lib/context';
 	import { MIGRATIONS } from '$lib/migrations';
 	import { EXAMPLES_TABS } from '$lib/onboarding';
+	import {
+		billing,
+		handleSubscriptionRedirect,
+		onSubscriptionChange,
+		refresh as refreshSubscription,
+		type Subscription
+	} from '$lib/subscriptions';
 
 	let { children } = $props();
 	let mounted = $state(false);
 	let authenticated = $state(false);
+	let subscription = $state<Subscription | null>(null);
 
 	const contextmenu = new ContextMenuState();
-	setAppContext({ contextmenu, isAuthenticated: () => authenticated });
+	setAppContext({
+		contextmenu,
+		isAuthenticated: () => authenticated,
+		subscription: () => subscription
+	});
 
 	async function displayOnboarding() {
 		for (const example of EXAMPLES_TABS) {
@@ -27,7 +39,18 @@
 		}
 	}
 
-	$effect(() => onStateChange((a) => (authenticated = a)));
+	$effect(() =>
+		onStateChange((a) => {
+			authenticated = a;
+			if (authenticated) refreshSubscription();
+		})
+	);
+	$effect(() =>
+		onSubscriptionChange(async () => {
+			const token = await getToken();
+			if (token) subscription = await billing.getSubscription({ token });
+		})
+	);
 
 	onMount(async () => {
 		const m = new MigrationManager(store);
@@ -40,6 +63,7 @@
 		}
 
 		await checkLoginState();
+		await handleSubscriptionRedirect();
 
 		mounted = true;
 	});

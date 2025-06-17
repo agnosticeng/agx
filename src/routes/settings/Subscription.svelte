@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getToken } from '$lib/auth';
+	import { getToken, openUrl } from '$lib/auth';
 	import { getAppContext } from '$lib/context';
-	import { onMount } from 'svelte';
+	import { billing, isSubscriptionActive } from '$lib/subscriptions';
 
 	interface Props {
 		close?: () => void;
@@ -9,67 +9,23 @@
 
 	let { close }: Props = $props();
 
-	const { isAuthenticated } = getAppContext();
-	let subscription = $state(null);
-
-	onMount(async () => {
-		if (!isAuthenticated()) return;
-
-		const token = await getToken();
-		if (!token) return;
-		const headers = new Headers();
-		headers.set('Authorization', `Bearer ${token}`);
-		headers.set('Accept', 'application/json');
-
-		const response = await fetch(`${AGNOSTIC_API_URI}/billing/api/subscriptions`, {
-			headers
-		});
-
-		if (!response.ok) return;
-		subscription = await response.json();
-	});
+	const { isAuthenticated, subscription: getSubscription } = getAppContext();
+	const subscription = $derived(getSubscription());
 
 	async function checkout() {
 		const token = await getToken();
 		if (!token) return;
 
-		const headers = new Headers();
-		headers.set('Authorization', `Bearer ${token}`);
-		headers.set('Accept', 'application/json');
-		headers.set('Content-Type', 'application/json');
-
-		const response = await fetch(`${AGNOSTIC_API_URI}/billing/api/checkout/session`, {
-			method: 'POST',
-			headers
-		});
-
-		if (!response.ok) {
-			console.error(await response.text());
-			return;
-		}
-
-		const json = await response.json();
-		window.location = json.session_url;
+		const url = await billing.createCheckoutSession({ token });
+		if (url) await openUrl(url);
 	}
 
 	async function portal() {
 		const token = await getToken();
 		if (!token) return;
 
-		const headers = new Headers();
-		headers.set('Authorization', `Bearer ${token}`);
-		headers.set('Accept', 'application/json');
-		headers.set('Content-Type', 'application/json');
-
-		const response = await fetch(`${AGNOSTIC_API_URI}/billing/api/customer/portal`, {
-			method: 'GET',
-			headers
-		});
-
-		if (!response.ok) return;
-
-		const { portal_url } = await response.json();
-		window.location = portal_url;
+		const url = await billing.getCustomerPortal({ token });
+		if (url) await openUrl(url);
 	}
 </script>
 
@@ -77,13 +33,23 @@
 	<h2>Subscription</h2>
 
 	{#if isAuthenticated()}
-		<div>
-			<p>Unleash the power of AGX!</p>
+		{#if isSubscriptionActive(subscription)}
+			<p>
+				Thanks for subscribing — you now have full access to agx Pro. Enjoy enhanced performance
+				with agp, priority features, and a faster, smarter analytics experience.
+			</p>
+		{:else}
+			<p>
+				Subscribe to unlock the full power of agx — get deeper control with agp, faster queries,
+				advanced features, and early access to what's coming next.
+			</p>
+		{/if}
 
+		<div>
 			{#if subscription}
-				<button onclick={() => portal()}> Portal </button>
+				<button onclick={() => portal()}>Portal</button>
 			{:else}
-				<button onclick={() => checkout()}> Checkout </button>
+				<button onclick={() => checkout()}>Subscribe</button>
 			{/if}
 		</div>
 	{/if}
@@ -93,5 +59,40 @@
 	h2 {
 		margin: 0;
 		padding: 3px 0 8px;
+	}
+
+	p {
+		margin: 0;
+		font-size: 12px;
+		color: hsl(0deg 0% 86%);
+	}
+
+	div > div {
+		padding: 28px 0 14px;
+	}
+
+	div > button {
+		background-color: hsl(0deg 0% 90%);
+		color: hsl(0deg 0% 27%);
+		padding: 4px 6px;
+		border-radius: 3px;
+		font-size: 12px;
+
+		&:hover {
+			background-color: hsl(0deg 0% 86%);
+			color: hsl(0deg 0% 14%);
+		}
+	}
+
+	button {
+		appearance: none;
+		outline: none;
+		border: none;
+		font-size: 10px;
+		font-weight: 500;
+
+		&:is(:hover, :focus-within):not(:disabled) {
+			cursor: pointer;
+		}
 	}
 </style>

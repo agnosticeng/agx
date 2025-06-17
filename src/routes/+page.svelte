@@ -51,6 +51,7 @@
 	import { SQLiteTabRepository, type Tab, type TabRepository } from '$lib/repositories/tabs';
 	import { Persisted } from '$lib/states/Persisted.svelte';
 	import { store } from '$lib/store';
+	import { isSubscriptionActive } from '$lib/subscriptions';
 	import { IndexedDBCache } from '@agnosticeng/cache';
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import debounce from 'p-debounce';
@@ -74,7 +75,7 @@
 
 	const cache = new IndexedDBCache({ dbName: 'query-cache', storeName: 'response-data' });
 	let cached = $state(false);
-	const { isAuthenticated } = getAppContext();
+	const { isAuthenticated, subscription } = getAppContext();
 
 	async function handleExec(force = false) {
 		const query = currentTab.content;
@@ -606,7 +607,10 @@ LIMIT 100;`;
 			>
 				<PanelLeft size="12" />
 			</button>
-			<button class:active={isAuthenticated()} onclick={() => settingsModal?.show('Subscription')}>
+			<button
+				class:active={isSubscriptionActive(subscription())}
+				onclick={() => settingsModal?.show('Subscription')}
+			>
 				<CheckBadge size="12" />
 			</button>
 			{#if BUILD}

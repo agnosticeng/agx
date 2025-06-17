@@ -39,13 +39,10 @@
 	p {
 		margin: 0;
 		font-size: 12px;
-		line-height: 24px;
 		color: hsl(0deg 0% 86%);
 	}
 
 	div > div {
-		display: flex;
-		justify-content: center;
 		padding: 28px 0 14px;
 	}
 

@@ -82,7 +82,7 @@ export async function logout(silently = true) {
 	}
 }
 
-async function openUrl(url: string) {
+export async function openUrl(url: string) {
 	if (PLATFORM === 'WEB') window.location.assign(url);
 	if (PLATFORM === 'NATIVE') await openUrlWithBrowser(url);
 }
