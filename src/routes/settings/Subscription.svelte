@@ -32,27 +32,25 @@
 <div>
 	<h2>Subscription</h2>
 
-	{#if isAuthenticated()}
-		{#if isSubscriptionActive(subscription)}
-			<p>
-				Thanks for subscribing — you now have full access to agx Pro. Enjoy enhanced performance
-				with agp, priority features, and a faster, smarter analytics experience.
-			</p>
-		{:else}
-			<p>
-				Subscribe to unlock the full power of agx — get deeper control with agp, faster queries,
-				advanced features, and early access to what's coming next.
-			</p>
-		{/if}
-
-		<div>
-			{#if subscription}
-				<button onclick={() => portal()}>Portal</button>
-			{:else}
-				<button onclick={() => checkout()}>Subscribe</button>
-			{/if}
-		</div>
+	{#if isSubscriptionActive(subscription)}
+		<p>
+			Thanks for subscribing — you now have full access to agx Pro. Enjoy enhanced performance with
+			agp, priority features, and a faster, smarter analytics experience.
+		</p>
+	{:else}
+		<p>
+			Subscribe to unlock the full power of agx — get deeper control with agp, faster queries,
+			advanced features, and early access to what's coming next.
+		</p>
 	{/if}
+
+	<div>
+		{#if subscription}
+			<button onclick={() => portal()}>Portal</button>
+		{:else}
+			<button onclick={() => checkout()}>Subscribe</button>
+		{/if}
+	</div>
 </div>
 
 <style>

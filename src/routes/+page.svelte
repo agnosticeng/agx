@@ -607,12 +607,14 @@ LIMIT 100;`;
 			>
 				<PanelLeft size="12" />
 			</button>
-			<button
-				class:active={isSubscriptionActive(subscription())}
-				onclick={() => settingsModal?.show('Subscription')}
-			>
-				<CheckBadge size="12" />
-			</button>
+			{#if isAuthenticated()}
+				<button
+					class:active={isSubscriptionActive(subscription())}
+					onclick={() => settingsModal?.show('Subscription')}
+				>
+					<CheckBadge size="12" />
+				</button>
+			{/if}
 			{#if BUILD}
 				<span class="label">build-{BUILD}</span>
 			{/if}

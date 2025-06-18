@@ -1,13 +1,14 @@
 <script lang="ts">
 	import Modal from '$lib/components/Modal.svelte';
+	import { getAppContext } from '$lib/context';
 	import General from './General.svelte';
 	import Subscription from './Subscription.svelte';
 
 	let modal = $state<ReturnType<typeof Modal>>();
 	let open = $state(false);
 
-	const routes = ['General', 'Subscription'] as const;
-	let route = $state<(typeof routes)[number]>('General');
+	let route = $state<'General' | 'Subscription'>('General');
+	let { isAuthenticated } = getAppContext();
 
 	export function show(predefinedRoute: typeof route = 'General') {
 		route = predefinedRoute;
@@ -21,11 +22,14 @@
 		<div class="settings-container">
 			<nav>
 				<ul role="listbox">
-					{#each routes as path}
-						<li role="option" aria-selected={route === path}>
-							<button onclick={() => (route = path)}>{path}</button>
+					<li role="option" aria-selected={route === 'General'}>
+						<button onclick={() => (route = 'General')}>General</button>
+					</li>
+					{#if isAuthenticated()}
+						<li role="option" aria-selected={route === 'Subscription'}>
+							<button onclick={() => (route = 'Subscription')}>Subscription</button>
 						</li>
-					{/each}
+					{/if}
 				</ul>
 			</nav>
 			<section>
@@ -76,7 +80,7 @@
 			border-radius: 4px;
 		}
 
-		&:is(:hover, :focus-within) > button:not(:disabled) {
+		&:is(:hover) > button:not(:disabled) {
 			background-color: hsl(0deg 0% 15%);
 			color: hsl(0deg 0% 90%);
 		}
