@@ -46,9 +46,9 @@
 
 	<div>
 		{#if subscription}
-			<button onclick={() => portal()}>Portal</button>
+			<button onclick={() => portal()}>Manage subscription</button>
 		{:else}
-			<button onclick={() => checkout()}>Subscribe</button>
+			<button onclick={() => checkout()}>Checkout</button>
 		{/if}
 	</div>
 </div>

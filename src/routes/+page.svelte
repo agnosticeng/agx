@@ -56,9 +56,9 @@
 	import { SplitPane } from '@rich_harris/svelte-split-pane';
 	import debounce from 'p-debounce';
 	import { format } from 'sql-formatter';
-	import { tick, type ComponentProps } from 'svelte';
+	import { onDestroy, tick, type ComponentProps } from 'svelte';
 	import type { PageProps } from './$types';
-	import { SettingsModal } from './settings';
+	import { onSettingsShortcut, SettingsModal } from './settings';
 
 	let { data }: PageProps = $props();
 
@@ -176,6 +176,10 @@
 
 	let saveQueryModal = $state<ReturnType<typeof SaveQueryModal>>();
 	let settingsModal = $state<ReturnType<typeof SettingsModal>>();
+
+	let unlisten: (() => void) | undefined;
+	onSettingsShortcut(() => settingsModal?.show()).then((u) => (unlisten = u));
+	onDestroy(() => unlisten?.());
 
 	async function handleKeyDown(event: KeyboardEvent) {
 		if (event.key === 's' && event.metaKey) {
