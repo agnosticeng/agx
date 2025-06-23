@@ -34,8 +34,8 @@
 
 	{#if isSubscriptionActive(subscription)}
 		<p>
-			Thanks for subscribing — you now have full access to agx Pro. Enjoy enhanced performance with
-			agp, priority features, and a faster, smarter analytics experience.
+			Thanks for subscribing — you now have full access to Agnostic Pro. Enjoy enhanced performance
+			with agp, priority features, and a faster, smarter analytics experience.
 		</p>
 	{:else}
 		<p>
