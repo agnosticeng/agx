@@ -16,7 +16,7 @@ export type { Model };
 export const ArgnosticModel: Model = {
 	brand: 'Agnostic',
 	name: 'Agnostic AI (v0)',
-	baseURL: 'https://api.agx.app/ai/'
+	baseURL: new URL('/ai', AGNOSTIC_API_URI).toString()
 };
 
 export function isAgnosticModel(m: Model) {

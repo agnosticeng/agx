@@ -21,7 +21,8 @@ async function init() {
 		useRefreshTokens: true
 	});
 
-	await client.checkSession().catch(() => logout(true));
+	const claims = await client.getIdTokenClaims();
+	if (claims?.exp && claims.exp * 1000 < Date.now()) await logout();
 
 	emitter.emit('auth:changed', await client.isAuthenticated());
 }

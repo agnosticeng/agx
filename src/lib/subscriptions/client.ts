@@ -20,7 +20,7 @@ export class BillingClient {
 	constructor(private baseUrl: string) {}
 
 	async getSubscription({ token }: BillingClientOptions) {
-		const url = new URL('/billing/api/subscriptions', this.baseUrl);
+		const url = new URL('/billing/subscriptions', this.baseUrl);
 
 		const response = await fetch(url, { method: 'GET', headers: this.headers(token) });
 		if (!response.ok) return null;
@@ -37,7 +37,7 @@ export class BillingClient {
 	}
 
 	async createCheckoutSession({ token }: BillingClientOptions) {
-		const url = new URL('/billing/api/checkout/session', this.baseUrl);
+		const url = new URL('/billing/checkout/session', this.baseUrl);
 
 		const response = await fetch(url, { method: 'POST', headers: this.headers(token) });
 
@@ -51,7 +51,7 @@ export class BillingClient {
 	}
 
 	async getCheckoutSession(sessionId: string, { token }: BillingClientOptions) {
-		const url = new URL(`/billing/api/checkout/session/${sessionId}`, this.baseUrl);
+		const url = new URL(`/billing/checkout/session/${sessionId}`, this.baseUrl);
 		const response = await fetch(url, { method: 'GET', headers: this.headers(token) });
 
 		if (!response.ok) return null;
@@ -60,7 +60,7 @@ export class BillingClient {
 	}
 
 	async getCustomerPortal({ token }: BillingClientOptions) {
-		const url = new URL('/billing/api/customer/portal', this.baseUrl);
+		const url = new URL('/billing/customer/portal', this.baseUrl);
 
 		const response = await fetch(url, { method: 'GET', headers: this.headers(token) });
 		if (!response.ok) return null;
@@ -68,6 +68,21 @@ export class BillingClient {
 		const { portal_url } = (await response.json()) as { portal_url: string };
 
 		return portal_url;
+	}
+
+	async createExecutionToken({ token }: BillingClientOptions) {
+		const url = new URL('/billing/token', this.baseUrl);
+		const response = await fetch(url, { method: 'POST', headers: this.headers(token) });
+		if (!response.ok) return null;
+		return await response.text();
+	}
+
+	async getConfig() {
+		const url = new URL('/billing/config', this.baseUrl);
+		const response = await fetch(url, { method: 'GET' });
+		if (!response.ok) return null;
+
+		return (await response.json()) as { key: string; plan: { plus: string; pro: string } };
 	}
 
 	private headers(token: string) {
