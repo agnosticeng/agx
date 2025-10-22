@@ -266,7 +266,7 @@
 	$effect(
 		() =>
 			void tabRepository.get().then(([t, active]) => {
-				if (t.length) (tabs = t), (selectedTabIndex = active);
+				if (t.length) ((tabs = t), (selectedTabIndex = active));
 				else tabs.push({ id: crypto.randomUUID(), content: '', name: 'Untitled' });
 			})
 	);
@@ -378,7 +378,7 @@ LIMIT 100;`;
 	$effect(
 		() =>
 			void chatsRepository.list().then(([c, active]) => {
-				if (c.length) (chats = c), (focusedChat = active);
+				if (c.length) ((chats = c), (focusedChat = active));
 			})
 	);
 
