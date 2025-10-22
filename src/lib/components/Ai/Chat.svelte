@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { autoresize } from '$lib/actions/autoresize.svelte';
 	import { scroll_to_bottom } from '$lib/actions/scrollToBottom.svelte';
-	import { getToken, logout } from '$lib/auth';
 	import Select from '$lib/components/Select.svelte';
 	import { getAppContext } from '$lib/context';
 	import ChevronDown from '$lib/icons/ChevronDown.svelte';
@@ -50,7 +49,7 @@
 	let modelSelectbox = $state<ReturnType<typeof Select>>();
 	let form = $state<HTMLFormElement>();
 	const uid = $props.id();
-	const { isAuthenticated } = getAppContext();
+	const { isAuthenticated, logout, getToken } = getAppContext();
 	const needToLogin = $derived(isAgnosticModel(model) && !isAuthenticated());
 
 	function getContextFromTable(table: Table): string {

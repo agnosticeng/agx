@@ -2,13 +2,16 @@
 	import '$lib/styles/main.css';
 	import { onMount } from 'svelte';
 
+	import { MIGRATIONS } from '$lib/migrations';
 	import { store } from '$lib/store';
 	import { MigrationManager } from '@agnosticeng/migrate';
 
-	import { checkLoginState, onStateChange } from '$lib/auth';
+	import { createAuthRepository, initAuthBridge, login, type AuthRepository } from '$lib/auth';
+
 	import { ContextMenu, ContextMenuState } from '$lib/components/ContextMenu';
 	import { setAppContext } from '$lib/context';
-	import { MIGRATIONS } from '$lib/migrations';
+	import { detectRuntime, type Runtime } from '$lib/env/runtime';
+
 	import { EXAMPLES_TABS } from '$lib/onboarding';
 
 	let { children } = $props();
@@ -16,7 +19,30 @@
 	let authenticated = $state(false);
 
 	const contextmenu = new ContextMenuState();
-	setAppContext({ contextmenu, isAuthenticated: () => authenticated });
+	let runtime = $state<Runtime>()!;
+	let authRepo = $state.raw<AuthRepository>();
+
+	setAppContext({
+		contextmenu,
+
+		getRuntime() {
+			return runtime;
+		},
+
+		isAuthenticated() {
+			return authenticated;
+		},
+		async login() {
+			if (authRepo) await login(authRepo);
+		},
+		async logout() {
+			await authRepo?.clearSession();
+		},
+		async getToken() {
+			const session = await authRepo?.getSession();
+			return session?.accessToken;
+		}
+	});
 
 	async function displayOnboarding() {
 		for (const example of EXAMPLES_TABS) {
@@ -27,9 +53,17 @@
 		}
 	}
 
-	$effect(() => onStateChange((a) => (authenticated = a)));
-
 	onMount(async () => {
+		runtime = detectRuntime();
+
+		authRepo = createAuthRepository(runtime);
+		authRepo.onSessionChange((session) => (authenticated = !!session));
+
+		initAuthBridge(runtime, authRepo);
+
+		const session = await authRepo.getSession();
+		authenticated = !!session;
+
 		const m = new MigrationManager(store);
 		await m.migrate(MIGRATIONS);
 
@@ -38,8 +72,6 @@
 		if (count === 0) {
 			await displayOnboarding();
 		}
-
-		await checkLoginState();
 
 		mounted = true;
 	});
