@@ -1,8 +1,9 @@
 mod clickhouse;
 mod commands;
+mod menu;
 
 use std::sync::Mutex;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 struct AppState {
     path: String,
@@ -24,6 +25,18 @@ fn main() {
             app.manage(Mutex::new(AppState {
                 path: clickhouse_dir.to_string_lossy().to_string(),
             }));
+
+            let menu = menu::new_menu(app.app_handle())?;
+            app.set_menu(menu)?;
+
+            app.on_menu_event(move |app_handle: &tauri::AppHandle, event| {
+                match event.id().0.as_str() {
+                    "settings" => {
+                        app_handle.emit("open_settings", ()).unwrap();
+                    }
+                    _ => {}
+                }
+            });
 
             Ok(())
         })
