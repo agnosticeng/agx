@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { login } from '$lib/auth';
+	import { getAppContext } from '$lib/context';
 	import Sparkles from '$lib/icons/Sparkles.svelte';
+
+	const { login } = getAppContext();
 </script>
 
 <div class="login-wrapper">

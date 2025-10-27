@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { autoresize } from '$lib/actions/autoresize.svelte';
 	import { scroll_to_bottom } from '$lib/actions/scrollToBottom.svelte';
-	import { getToken, logout } from '$lib/auth';
 	import Select from '$lib/components/Select.svelte';
 	import { getAppContext } from '$lib/context';
 	import ChevronDown from '$lib/icons/ChevronDown.svelte';
@@ -26,7 +25,7 @@
 		dataset?: Table;
 		onOpenInEditor?: (sql: string) => void;
 		models: Model[];
-		model: Model;
+		model?: Model;
 		onModelChange: (m: Model) => void;
 	}
 
@@ -50,8 +49,8 @@
 	let modelSelectbox = $state<ReturnType<typeof Select>>();
 	let form = $state<HTMLFormElement>();
 	const uid = $props.id();
-	const { isAuthenticated } = getAppContext();
-	const needToLogin = $derived(isAgnosticModel(model) && !isAuthenticated());
+	const { isAuthenticated, logout, getToken } = getAppContext();
+	const needToLogin = $derived(model && isAgnosticModel(model) && !isAuthenticated());
 
 	function getContextFromTable(table: Table): string {
 		const columns = table.columns.map((col) => `- ${col.name} (${col.type})`).join('\n');
@@ -63,12 +62,13 @@
 	});
 
 	onMount(() => form?.dispatchEvent(new SubmitEvent('submit')));
-	const client = $derived(new OpenAIClient(model.baseURL));
+	const client = $derived(model ? new OpenAIClient(model.baseURL) : null);
 
 	async function handleSubmit(
 		event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement }
 	) {
 		event.preventDefault();
+		if (!model) return;
 		const form = event.currentTarget;
 
 		let token: string | undefined;
@@ -93,7 +93,7 @@
 
 		try {
 			abortController = new AbortController();
-			const completion = await client.createChatCompletion(
+			const completion = await client?.createChatCompletion(
 				{
 					model: model.name,
 					messages: dataset
@@ -104,7 +104,7 @@
 				{ signal: abortController.signal, token }
 			);
 
-			messages = messages.concat(completion.choices[0].message);
+			if (completion) messages = messages.concat(completion.choices[0].message);
 		} catch (e) {
 			if (e === 'Canceled by user') {
 				const last = messages.at(-1);
@@ -194,7 +194,7 @@
 							name="message"
 							tabindex="0"
 							rows="1"
-							placeholder="Ask {model.name}"
+							placeholder="Ask {model?.name ?? 'Ai'}"
 							disabled={loading}
 							use:autoresize
 							bind:value={message}
@@ -240,7 +240,7 @@
 			disabled={models.length === 1}
 			class="select-trigger"
 		>
-			<span>{model.name}</span>
+			<span>{model?.name ?? 'No model selected'}</span>
 			{#if models.length > 1}
 				<ChevronDown size="12" />
 			{/if}
@@ -271,7 +271,7 @@
 				type="submit"
 				bind:this={submitter}
 				title="Send ⌘⏎"
-				disabled={needToLogin}
+				disabled={!model || needToLogin}
 			>
 				Send ⌘⏎
 			</button>

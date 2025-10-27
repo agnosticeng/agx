@@ -14,7 +14,7 @@
 		onCloseAllTab?: () => void;
 		onOpenInEditor?: (sql: string) => void;
 		models: Model[];
-		selectedModel: Model;
+		selectedModel?: Model;
 		onModelChange: (m: Model) => void;
 	}
 

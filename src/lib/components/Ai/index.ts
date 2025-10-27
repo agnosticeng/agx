@@ -13,14 +13,14 @@ export interface Chat {
 
 export type { Model };
 
-export const ArgnosticModel: Model = {
+export const AgnosticModel: Model = {
 	brand: 'Agnostic',
 	name: 'Agnostic AI (v0)',
 	baseURL: 'https://ai.agx.app/'
 };
 
 export function isAgnosticModel(m: Model) {
-	return m.baseURL === ArgnosticModel.baseURL;
+	return m.baseURL === AgnosticModel.baseURL;
 }
 
 export function serializeModel(model: Model) {
