@@ -3,7 +3,7 @@
 
 	interface Props {
 		models: Model[];
-		model: Model;
+		model?: Model;
 		onSelect?: (model: Model) => void;
 	}
 
@@ -14,7 +14,7 @@
 	<ul role="listbox">
 		{#each models as m (m.name + m.brand)}
 			{@const isSelected =
-				m.brand === model.brand && m.name === model.name && m.baseURL === model.baseURL}
+				m.brand === model?.brand && m.name === model?.name && m.baseURL === model?.baseURL}
 			<li role="option" aria-selected={isSelected}>
 				<button
 					title={[m.brand, m.name].filter(Boolean).join(' • ')}
@@ -26,6 +26,10 @@
 						<span class="tag">{m.brand}</span>
 					</span>
 				</button>
+			</li>
+		{:else}
+			<li role="option" aria-selected="false">
+				<span>No model available</span>
 			</li>
 		{/each}
 	</ul>
@@ -58,6 +62,12 @@
 
 		&:not(:last-of-type) {
 			padding-bottom: 2px;
+		}
+
+		& > span {
+			display: block;
+			padding: 4px 0;
+			text-align: center;
 		}
 
 		& > button {
