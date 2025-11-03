@@ -6,13 +6,14 @@
 	import { store } from '$lib/store';
 	import { MigrationManager } from '@agnosticeng/migrate';
 
-	import { createAuthService, checkLoginState, type AuthService } from '$lib/auth';
+	import { checkLoginState, createAuthService, type AuthService } from '$lib/auth';
 	import { detectRuntime, type Runtime } from '$lib/env/runtime';
 
 	import { ContextMenu, ContextMenuState } from '$lib/components/ContextMenu';
 	import { setAppContext } from '$lib/context';
 
-	import { EXAMPLES_TABS } from '$lib/onboarding';
+	import { getCustomSchemaFromUrl } from '$lib/olap-engine';
+	import { EXAMPLES_TABS, tablePreview } from '$lib/onboarding';
 
 	let { children } = $props();
 	let mounted = $state(false);
@@ -42,12 +43,22 @@
 		}
 	});
 
-	async function displayOnboarding() {
-		for (const example of EXAMPLES_TABS) {
-			await store.exec(
-				`INSERT INTO tabs (id, name, content, tab_index, active) VALUES (?, ?, ?, ?, ?)`,
-				example
-			);
+	async function displayOnboarding(runtime: Runtime) {
+		if (runtime === 'embedded') {
+			const tables = getCustomSchemaFromUrl();
+			const tableName = tables.at(0)?.name;
+			if (tableName)
+				await store.exec(
+					`INSERT INTO tabs (id, name, content, tab_index, active) VALUES (?, ?, ?, ?, ?)`,
+					tablePreview(tableName)
+				);
+		} else {
+			for (const example of EXAMPLES_TABS) {
+				await store.exec(
+					`INSERT INTO tabs (id, name, content, tab_index, active) VALUES (?, ?, ?, ?, ?)`,
+					example
+				);
+			}
 		}
 	}
 
@@ -64,10 +75,7 @@
 		await m.migrate(MIGRATIONS);
 
 		const [{ count }] = await store.exec('SELECT COUNT(*) as count FROM tabs');
-
-		if (count === 0) {
-			await displayOnboarding();
-		}
+		if (count === 0) await displayOnboarding(runtime);
 
 		mounted = true;
 	});

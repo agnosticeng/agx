@@ -12,3 +12,7 @@ export const EXAMPLES_TABS = AGX
 			null
 		])
 	: [];
+
+export function tablePreview(name: string) {
+	return [crypto.randomUUID(), `${name} - preview`, `SELECT * FROM ${name} LIMIT 10;`, 0, null];
+}
