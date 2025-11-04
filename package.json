@@ -32,6 +32,7 @@
 		"d3": "^7.9.0",
 		"dayjs": "^1.11.18",
 		"highlight.js": "^11.11.1",
+		"jose": "^6.1.0",
 		"lodash": "^4.17.21",
 		"marked": "^16.4.1",
 		"marked-highlight": "^2.2.2",
