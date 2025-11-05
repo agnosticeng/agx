@@ -6,13 +6,11 @@
 	import { store } from '$lib/store';
 	import { MigrationManager } from '@agnosticeng/migrate';
 
-	import { createAuthService, checkLoginState, type AuthService } from '$lib/auth';
-	import { detectRuntime, type Runtime } from '$lib/env/runtime';
+	import { checkLoginState, createAuthService, type AuthService } from '$lib/auth';
+	import { detectRuntime } from '$lib/env/runtime';
 
 	import { ContextMenu, ContextMenuState } from '$lib/components/ContextMenu';
 	import { setAppContext } from '$lib/context';
-
-	import { EXAMPLES_TABS } from '$lib/onboarding';
 
 	let { children } = $props();
 	let mounted = $state(false);
@@ -42,13 +40,14 @@
 		}
 	});
 
-	async function displayOnboarding() {
-		for (const example of EXAMPLES_TABS) {
+	async function displayExample() {
+		const params = new URLSearchParams(window.location.search);
+		const example = params.get('example');
+		if (example)
 			await store.exec(
-				`INSERT INTO tabs (id, name, content, tab_index, active) VALUES (?, ?, ?, ?, ?)`,
-				example
+				'INSERT INTO tabs (id, name, content, tab_index, active) VALUES (?, ?, ?, ?, ?)',
+				[crypto.randomUUID(), 'Preview', example, 0, null]
 			);
-		}
 	}
 
 	onMount(async () => {
@@ -60,14 +59,11 @@
 		checkLoginState(runtime, authService);
 		authenticated = !!(await authService.getSession());
 
-		const m = new MigrationManager(store);
-		await m.migrate(MIGRATIONS);
+		const migration = new MigrationManager(store);
+		await migration.migrate(MIGRATIONS);
 
 		const [{ count }] = await store.exec('SELECT COUNT(*) as count FROM tabs');
-
-		if (count === 0) {
-			await displayOnboarding();
-		}
+		if (count === 0) await displayExample();
 
 		mounted = true;
 	});
