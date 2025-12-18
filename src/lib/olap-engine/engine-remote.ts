@@ -5,7 +5,7 @@ import CLICKHOUSE_GET_SCHEMA from './queries/clickhouse_get_schema.sql?raw';
 import CLICKHOUSE_GET_UDFS from './queries/clickhouse_get_udfs.sql?raw';
 
 const TABLE_PATTERN =
-	/^(?:[a-zA-Z_]+:[a-zA-Z_]+=[a-zA-Z()0-9]+(?:,[a-zA-Z_]+=[a-zA-Z()0-9]+)*;)*[a-zA-Z_]+:[a-zA-Z_]+=[a-zA-Z()0-9]+(?:,[a-zA-Z_]+=[a-zA-Z()0-9]+)*$/;
+	/^(?:[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*=[a-zA-Z0-9()]+(?:,[a-zA-Z_][a-zA-Z0-9_]*=[a-zA-Z0-9()]+)*;)*[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*=[a-zA-Z0-9()]+(?:,[a-zA-Z_][a-zA-Z0-9_]*=[a-zA-Z0-9()]+)*$/;
 
 export class RemoteEngine extends InternalEventEmitter<Events> implements OLAPEngine {
 	readonly isAbortable = true;
