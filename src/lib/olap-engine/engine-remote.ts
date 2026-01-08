@@ -20,7 +20,12 @@ export class RemoteEngine extends InternalEventEmitter<Events> implements OLAPEn
 			const r = await response.text();
 			if (!r) throw new Error(`Empty Response`);
 
-			const data: RemoteEngineResponse = JSON.parse(r);
+			let data: RemoteEngineResponse;
+			try {
+				data = JSON.parse(r);
+			} catch (e) {
+				throw new Error(r);
+			}
 
 			if ('exception' in data) throw new Error(data.exception);
 
