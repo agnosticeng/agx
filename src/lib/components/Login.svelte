@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { getAppContext } from '$lib/context';
+	import { detectRuntime } from '$lib/env/runtime';
 	import Sparkles from '$lib/icons/Sparkles.svelte';
 
 	const { login } = getAppContext();
+	const runtime = detectRuntime();
 </script>
 
 <div class="login-wrapper">
@@ -11,7 +13,9 @@
 		Log in to start generating SQL with Agnostic AI. Ask questions, get queries, and explore your
 		data faster than ever.
 	</p>
-	<button type="button" onclick={() => login()}>Login</button>
+	{#if runtime !== 'embedded'}
+		<button type="button" onclick={() => login()}>Login</button>
+	{/if}
 </div>
 
 <style>
