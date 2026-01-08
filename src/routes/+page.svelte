@@ -3,6 +3,7 @@
 		AiPanel,
 		deserializeModel,
 		generateFixMessage,
+		isAgnosticModel,
 		serializeModel,
 		type Chat
 	} from '$lib/components/Ai';
@@ -54,6 +55,8 @@
 	import { format } from 'sql-formatter';
 	import { tick, type ComponentProps } from 'svelte';
 	import type { PageProps } from './$types';
+	import { getAppContext } from '$lib/context';
+	import { detectRuntime } from '$lib/env/runtime';
 
 	let { data }: PageProps = $props();
 
@@ -382,6 +385,8 @@ LIMIT 100;`;
 			})
 	);
 
+	const { isAuthenticated } = getAppContext();
+	const runtime = detectRuntime();
 	const storedModel = new Persisted('ai:model', serializeModel(data.models[0]));
 	const selectedModel = $derived.by(() => {
 		const stored = deserializeModel(storedModel.current);
@@ -392,6 +397,15 @@ LIMIT 100;`;
 				(m) => m.name === stored.name && m.brand === stored.brand && m.baseURL === stored.baseURL
 			) ?? fallback
 		);
+	});
+
+	$effect(() => {
+		if (
+			!isAuthenticated() &&
+			!data.models.filter((m) => !isAgnosticModel(m)).length &&
+			runtime === 'embedded'
+		)
+			rightPanel.open = false;
 	});
 
 	function handleFixQuery({ data, query }: Log) {

@@ -3,7 +3,7 @@ import type { ContextMenuState } from './components/ContextMenu';
 
 export type AppContext = {
 	contextmenu: ContextMenuState;
-	isAuthenticated: () => boolean;
+	isAuthenticated(): boolean;
 	login(): Promise<void>;
 	logout(): Promise<void>;
 	getToken(): Promise<string | undefined>;
