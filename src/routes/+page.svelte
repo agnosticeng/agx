@@ -33,7 +33,6 @@
 	import Stop from '$lib/icons/Stop.svelte';
 	import type { Table } from '$lib/olap-engine';
 	import { applySlugs, engine, type OLAPResponse } from '$lib/olap-engine';
-	import { PanelState } from '$lib/PanelState.svelte';
 	import { SQLiteChatsRepository, type ChatsRepository } from '$lib/repositories/chats';
 	import {
 		SQLiteHistoryRepository,
@@ -46,6 +45,7 @@
 		type QueryRepository
 	} from '$lib/repositories/queries';
 	import { SQLiteTabRepository, type Tab, type TabRepository } from '$lib/repositories/tabs';
+	import { PanelState } from '$lib/states/PanelState.svelte';
 	import { Persisted } from '$lib/states/Persisted.svelte';
 	import { store } from '$lib/store';
 	import { IndexedDBCache } from '@agnosticeng/cache';
@@ -301,9 +301,9 @@
 
 	$effect(() => void saveTabs($state.snapshot(tabs), selectedTabIndex).catch(console.error));
 
-	const bottomPanel = new PanelState('-50%', false);
-	const leftPanel = new PanelState('260px', true);
-	const rightPanel = new PanelState('-300px', true);
+	const bottomPanel = new PanelState('bottom', '-50%', false);
+	const leftPanel = new PanelState('left', '260px');
+	const rightPanel = new PanelState('right', '-300px');
 
 	let bottomPanelTab = $state<'data' | 'chart' | 'logs'>('data');
 	let errors = $state.raw<Log[]>([]);
