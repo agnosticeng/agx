@@ -4,7 +4,7 @@ import { engine } from '$lib/olap-engine';
 import { getModels, isInstalled } from '$lib/ollama';
 import type { PageLoad } from './$types';
 
-export const load = (async () => {
+export const load = (async ({ url }) => {
 	await engine.init();
 
 	const isOllamaInstalled = await isInstalled();
@@ -13,5 +13,7 @@ export const load = (async () => {
 	if (isAuthEnabled()) models.push(AgnosticModel);
 	if (isOllamaInstalled) models.push(...(await getModels()));
 
-	return { models };
+	const shareUrl = url.searchParams.get('share_url');
+
+	return { models, shareUrl };
 }) satisfies PageLoad;

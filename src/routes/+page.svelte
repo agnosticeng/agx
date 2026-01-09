@@ -57,6 +57,7 @@
 	import type { PageProps } from './$types';
 	import { getAppContext } from '$lib/context';
 	import { detectRuntime } from '$lib/env/runtime';
+	import Share from '$lib/icons/Share.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -408,6 +409,17 @@ LIMIT 100;`;
 			rightPanel.open = false;
 	});
 
+	const shareUrl = $derived.by(() => {
+		if (!data.shareUrl) return null;
+
+		const url = new URL(data.shareUrl);
+		url.searchParams.set('sql', currentTab?.content);
+		url.searchParams.set('name', currentTab?.name);
+
+		return url.toString();
+	});
+	const canShare = $derived(!!shareUrl && runtime === 'embedded');
+
 	function handleFixQuery({ data, query }: Log) {
 		focusedChat =
 			chats.push({
@@ -519,6 +531,11 @@ LIMIT 100;`;
 											</button>
 										</div>
 										<div class="workspace-actions">
+											{#if canShare}
+												<a class="action" title="Share" href={shareUrl} target="_parent">
+													<Share size="12" />
+												</a>
+											{/if}
 											<button
 												class="action"
 												title="Copy"
@@ -684,7 +701,9 @@ LIMIT 100;`;
 			gap: 0px;
 		}
 
-		& button.action {
+		& button.action,
+		a.action {
+			color: hsl(0deg 0% 100%);
 			height: 100%;
 			aspect-ratio: 1;
 			background-color: transparent;
