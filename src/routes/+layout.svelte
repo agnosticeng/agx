@@ -74,3 +74,22 @@
 
 	{@render children()}
 {/if}
+
+<svelte:head>
+	<script>
+		(function () {
+			const urlParams = new URLSearchParams(window.location.search);
+			const theme =
+				urlParams.get('theme') ||
+				localStorage.getItem('theme') ||
+				(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+			document.documentElement.setAttribute('data-theme', theme);
+		})();
+	</script>
+</svelte:head>
+
+<style>
+	:global([data-theme='light']) {
+		filter: invert(1) hue-rotate(180deg);
+	}
+</style>
