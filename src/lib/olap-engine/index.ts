@@ -43,4 +43,4 @@ export const engine: OLAPEngine =
 		? new RemoteEngine()
 		: new LocalEngine();
 
-export { applySlugs } from './tables';
+export { applyCustomTable } from './tables';

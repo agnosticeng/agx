@@ -3,17 +3,60 @@ interface Source {
 	path: string;
 }
 
-export function applySlugs(query: string, sources: Source[]) {
-	for (const source of sources) {
-		query = query.replace(new RegExp(`(from|FROM)[ \n\t]+(${source.slug})`, 'g'), (match) =>
-			match.replace(source.slug, `${source.path} ${source.slug}`)
+const SQL_KEYWORDS = new Set([
+	'WHERE',
+	'ON',
+	'GROUP',
+	'ORDER',
+	'LIMIT',
+	'OFFSET',
+	'HAVING',
+	'SET',
+	'LEFT',
+	'RIGHT',
+	'INNER',
+	'OUTER',
+	'CROSS',
+	'JOIN',
+	'UNION',
+	'RETURNING',
+	'VALUES',
+	';'
+]);
+
+export function applyCustomTable(query: string, sources: Source[]) {
+	let newQuery = query;
+
+	for (const { slug, path } of sources) {
+		const regex = new RegExp(
+			`(\\bFROM\\b|\\bJOIN\\b|\\bUPDATE\\b|\\bINTO\\b)\\s+(?:(\\w+)\\.)?(${slug})\\b(\\s+(?:AS\\s+)?\\w+)?`,
+			'gi'
 		);
 
-		query = query.replace(
-			new RegExp(`(describe|DESCRIBE)([ \n\t]+(table|TABLE))?[ \n\t]+(${source.slug})`, 'g'),
-			(match) => match.replace(source.slug, `${source.path}`)
+		newQuery = newQuery.replace(
+			regex,
+			(_fullMatch, keyword, _schema, foundTable, potentialAliasChunk) => {
+				let finalAliasPart = '';
+
+				if (potentialAliasChunk) {
+					const rawAlias = potentialAliasChunk.trim().replace(/^AS\s+/i, '');
+					if (SQL_KEYWORDS.has(rawAlias.toUpperCase())) {
+						finalAliasPart = ` ${foundTable} ${potentialAliasChunk}`;
+					} else {
+						finalAliasPart = potentialAliasChunk;
+					}
+				} else {
+					finalAliasPart = ` ${foundTable}`;
+				}
+				return `${keyword} ${path}${finalAliasPart}`;
+			}
+		);
+
+		newQuery = newQuery.replace(
+			new RegExp(`(DESCRIBE)\\s+(?:TABLE\\s+)?(${slug})\\b`, 'gi'),
+			`$1 ${path}`
 		);
 	}
 
-	return query;
+	return newQuery;
 }

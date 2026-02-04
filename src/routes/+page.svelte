@@ -33,7 +33,7 @@
 	import Sparkles from '$lib/icons/Sparkles.svelte';
 	import Stop from '$lib/icons/Stop.svelte';
 	import type { Table } from '$lib/olap-engine';
-	import { applySlugs, engine, type OLAPResponse } from '$lib/olap-engine';
+	import { applyCustomTable, engine, type OLAPResponse } from '$lib/olap-engine';
 	import { SQLiteChatsRepository, type ChatsRepository } from '$lib/repositories/chats';
 	import {
 		SQLiteHistoryRepository,
@@ -100,7 +100,9 @@
 
 			cached = false;
 			abortController = new AbortController();
-			response = await engine.exec(applySlugs(query, sources), { signal: abortController.signal });
+			response = await engine.exec(applyCustomTable(query, sources), {
+				signal: abortController.signal
+			});
 			await cache.set(query, response);
 		} finally {
 			loading = false;
