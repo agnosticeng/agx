@@ -24,7 +24,7 @@ export default defineConfig(async () => ({
 	},
 	define: {
 		CLICKHOUSE_URL: JSON.stringify(
-			process.env.CLICKHOUSE_URL || 'https://agp.agx.app/v1/chproxy/?default_format=JSON'
+			process.env.CLICKHOUSE_URL || 'https://agp-jag0.agnostic.tech/v1/chproxy/?default_format=JSON'
 		),
 		PLATFORM: JSON.stringify(process.env.PLATFORM || 'NATIVE'),
 		BUILD: JSON.stringify(

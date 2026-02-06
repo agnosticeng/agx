@@ -89,7 +89,6 @@
 			if (!force) {
 				const r = await cache.get(query);
 				if (r) {
-					cached = true;
 					response = r;
 					cached = true;
 					bottomPanel.open = true;
@@ -477,7 +476,7 @@ LIMIT 100;`;
 			</Drawer>
 		{/if}
 		<SplitPane
-			type="horizontal"
+			type="columns"
 			disabled={!leftPanel.open || isMobile}
 			bind:pos={leftPanel.position}
 			min={!leftPanel.open || isMobile ? '0px' : '242px'}
@@ -490,7 +489,7 @@ LIMIT 100;`;
 			{/snippet}
 			{#snippet b()}
 				<SplitPane
-					type="horizontal"
+					type="columns"
 					disabled={!rightPanel.open || isMobile}
 					bind:pos={rightPanel.position}
 					max="-300px"
@@ -498,7 +497,7 @@ LIMIT 100;`;
 				>
 					{#snippet a()}
 						<SplitPane
-							type="vertical"
+							type="rows"
 							max="-20%"
 							min={bottomPanel.open ? '-80%' : '100%'}
 							bind:pos={bottomPanel.position}
@@ -645,7 +644,7 @@ LIMIT 100;`;
 				>
 					{response.rows} rows
 				</span>
-				<span class="label">in</span>
+				<span class="label">in</span>@
 			{/if}
 			<TimeCounter bind:this={counter} />
 			{#if cached}
