@@ -10,6 +10,8 @@ export interface Tab {
 export interface TabRepository {
 	get(): Promise<[tabs: Tab[], activeIndex: number]>;
 	save(tabs: Tab[], activeIndex: number): Promise<void>;
+	count(): Promise<number>;
+	insert(tab: Tab, upfront?: boolean): Promise<void>;
 }
 
 export class SQLiteTabRepository implements TabRepository {
@@ -40,6 +42,36 @@ VALUES ${Array.from({ length: rows.length }).fill('(?,?,?,?,?,?)').join(',\n')}
 				])
 				.flat()
 		);
+	}
+
+	async count(): Promise<number> {
+		const [{ count }] = await this.db.exec('SELECT COUNT(*) as count FROM tabs');
+
+		return count as number;
+	}
+
+	async insert({ id, content, name, query_id }: Tab, upfront = true): Promise<void> {
+		try {
+			await this.db.exec('BEGIN TRANSACTION');
+
+			let index = 0;
+			if (upfront) {
+				await this.db.exec('UPDATE tabs SET tab_index = tab_index + 1, active = NULL');
+			} else {
+				await this.db.exec('UPDATE tabs SET active = NULL');
+				index = await this.count();
+			}
+
+			await this.db.exec(
+				'INSERT INTO tabs (id, name, content, query_id, tab_index, active) VALUES (?,?,?,?,?,?)',
+				[id, name, content, query_id, index, true]
+			);
+
+			await this.db.exec('COMMIT');
+		} catch (e) {
+			await this.db.exec('ROLLBACK');
+			console.error(e);
+		}
 	}
 }
 

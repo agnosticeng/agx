@@ -11,6 +11,7 @@
 
 	import { ContextMenu, ContextMenuState } from '$lib/components/ContextMenu';
 	import { setAppContext } from '$lib/context';
+	import { SQLiteTabRepository } from '$lib/repositories/tabs';
 
 	let { children } = $props();
 	let mounted = $state(false);
@@ -40,14 +41,22 @@
 		}
 	});
 
+	const tabRepository = new SQLiteTabRepository(store);
+
 	async function displayExample() {
 		const params = new URLSearchParams(window.location.search);
 		const example = params.get('example');
 		if (example)
-			await store.exec(
-				'INSERT INTO tabs (id, name, content, tab_index, active) VALUES (?, ?, ?, ?, ?)',
-				[crypto.randomUUID(), 'Preview', example, 0, null]
-			);
+			await tabRepository.insert({ id: crypto.randomUUID(), name: 'Preview', content: example });
+	}
+
+	async function displayOpenWith() {
+		const params = new URLSearchParams(window.location.search);
+		const query = params.get('open-query');
+
+		if (query) {
+			await tabRepository.insert({ id: crypto.randomUUID(), name: 'Untitled', content: query });
+		}
 	}
 
 	onMount(async () => {
@@ -62,7 +71,8 @@
 		const migration = new MigrationManager(store);
 		await migration.migrate(MIGRATIONS);
 
-		const [{ count }] = await store.exec('SELECT COUNT(*) as count FROM tabs');
+		if (runtime === 'embedded') await displayOpenWith();
+		const count = await tabRepository.count();
 		if (count === 0) await displayExample();
 
 		mounted = true;
